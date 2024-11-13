@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.8 (rotorpy)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.8 (rotorpy)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.8 (rl_uav_control)" project-jdk-type="Python SDK" />
 </project>
