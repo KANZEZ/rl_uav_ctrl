@@ -141,7 +141,7 @@ class QuadrotorEnv(gym.Env):
 
         if world is None:
             # If no world is specified, assume that it means that the intended world is free space.
-            wbound = 4 
+            wbound = 7
             self.world = World.empty((-wbound, wbound, -wbound, 
                                        wbound, -wbound, wbound))
         else:

@@ -36,8 +36,9 @@ try:
 except:
     raise ImportError('To run this example you must have Stable Baselines installed via pip install stable_baselines3')
 
-from stable_baselines3 import PPO                                   # We'll use PPO for training.
+from stable_baselines3 import PPO, DDPG                                   # We'll use PPO for training.
 from stable_baselines3.ppo.policies import MlpPolicy                # The policy will be represented by an MLP
+from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 
 num_cpu = 4   # for parallelization
 
@@ -63,6 +64,9 @@ observation, info = env.reset(initial_state='random', options={'pos_bound': 2, '
 
 # Create a new model
 model = PPO(MlpPolicy, env, verbose=1, ent_coef=0.01, tensorboard_log=log_dir)
+#n_actions = env.action_space.shape[-1]
+#action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
+#model = DDPG("MlpPolicy", env, action_noise=action_noise, verbose=1)
 
 # Training... 
 num_timesteps = 20_000
