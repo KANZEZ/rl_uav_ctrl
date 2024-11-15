@@ -13,14 +13,15 @@ class CurriculumReward(object):
         self.C_VEL_TARGET = 0.5
         self.C_ORIENT_INIT = 2.5
         self.C_ORIENT_TARGET = 2.5
-        self.C_ANGVEL_INIT = 0
-        self.C_ANGVEL_TARGET = 0
+        self.C_ANGVEL_INIT = 0.02
+        self.C_ANGVEL_TARGET = 2.0
         self.C_ACTION_INIT = 0.005
-        self.C_ACTION_TARGET = 0.5
+        self.C_ACTION_TARGET = 0.05
 
         self.C_POS_RATE = 1.2
         self.C_VEL_RATE = 1.4
         self.C_ACTION_RATE = 1.4
+        self.C_ANGVEL_RATE = 1.2
 
         # survival reward
         self.SURVIVE_REWARD = 1.5
@@ -34,6 +35,7 @@ class CurriculumReward(object):
         self.C_POS_INIT = min(self.C_POS_INIT * self.C_POS_RATE, self.C_POS_TARGET)
         self.C_VEL_INIT = min(self.C_VEL_INIT * self.C_VEL_RATE, self.C_VEL_TARGET)
         self.C_ACTION_INIT = min(self.C_ACTION_INIT * self.C_ACTION_RATE, self.C_ACTION_TARGET)
+        self.C_ANGVEL_INIT = min(self.C_ANGVEL_INIT * self.C_ANGVEL_RATE, self.C_ANGVEL_TARGET)
 
     def reward(self, observation, action, done):
         """
@@ -48,7 +50,7 @@ class CurriculumReward(object):
 
         #Compute the quaternion error, dont use it for now
         quat_reward = -self.C_ORIENT_INIT*(1 - observation[9]**2) #np.linalg.norm(observation[6:10])
-
+        quat_reward += -self.C_ORIENT_INIT*np.linalg.norm(observation[6:9])
         # Compute the angular rate reward, note that we set it to zero
         ang_rate_reward = -self.C_ANGVEL_INIT*np.linalg.norm(observation[10:13])
 
