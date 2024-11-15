@@ -9,7 +9,7 @@ from rotorpy.vehicles.crazyflie_params import quad_params
 
 if __name__ == "__main__":
     # Set the seed for reproducibility
-    pos_bound, vel_bound = 1.8, 0.5
+    pos_bound, vel_bound = 3.0, 1.9
     model = DDPG(13, 4)
     path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/22-27-53/"
     # Load the policy
@@ -25,7 +25,7 @@ if __name__ == "__main__":
                         quad_params = quad_params,
                         max_time = 5,
                         world = None,
-                        sim_rate = 100,
+                        sim_rate = 30,
                         render_mode='3D')
     ac_obj = ActionContainer(4)
     avg_reward = 0.

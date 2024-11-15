@@ -23,7 +23,10 @@ class CurriculumReward(object):
         self.C_ACTION_RATE = 1.4
 
         # survival reward
-        self.SURVIVE_REWARD = 2
+        self.SURVIVE_REWARD = 1
+
+        # goal reward
+        self.GOAL_REWARD = 0
 
     def curriculum_update(self):
         self.C_POS_INIT = min(self.C_POS_INIT * self.C_POS_RATE, self.C_POS_TARGET)
@@ -50,7 +53,12 @@ class CurriculumReward(object):
         # Compute the action reward
         action_reward = -self.C_ACTION_INIT*np.linalg.norm(action)
 
-        if done:
-            return dist_reward + vel_reward + ang_rate_reward + action_reward
+        if np.linalg.norm(observation[0:3]) < 0.1 and np.linalg.norm(observation[3:6]) < 0.07:
+            self.GOAL_REWARD = 10
+        else:
+            self.GOAL_REWARD = 0
 
-        return dist_reward + vel_reward + ang_rate_reward + action_reward + self.SURVIVE_REWARD
+        if done:
+            return dist_reward + vel_reward + ang_rate_reward + action_reward + self.GOAL_REWARD
+
+        return dist_reward + vel_reward + ang_rate_reward + action_reward + self.SURVIVE_REWARD + self.GOAL_REWARD
