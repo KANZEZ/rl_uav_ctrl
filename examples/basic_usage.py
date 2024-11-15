@@ -57,7 +57,7 @@ world = World.from_file(os.path.abspath(os.path.join(os.path.dirname(__file__),'
 # An instance of the simulator can be generated as follows: 
 sim_instance = Environment(vehicle=Multirotor(quad_params),           # vehicle object, must be specified. 
                            controller=SE3Control(quad_params),        # controller object, must be specified.
-                           trajectory=CircularTraj(radius=2),         # trajectory object, must be specified.
+                           trajectory=HoverTraj(),         # trajectory object, must be specified.
                            wind_profile=SinusoidWind(),               # OPTIONAL: wind profile object, if none is supplied it will choose no wind. 
                            sim_rate     = 100,                        # OPTIONAL: The update frequency of the simulator in Hz. Default is 100 Hz.
                            imu          = None,                       # OPTIONAL: imu sensor object, if none is supplied it will choose a default IMU sensor.

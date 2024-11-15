@@ -23,10 +23,12 @@ class CurriculumReward(object):
         self.C_ACTION_RATE = 1.4
 
         # survival reward
-        self.SURVIVE_REWARD = 1
+        self.SURVIVE_REWARD = 1.5
 
         # goal reward
         self.GOAL_REWARD = 0
+
+        self.rotor_speed_bs = np.array([0.1, 0.1, 0.1, 0.1])
 
     def curriculum_update(self):
         self.C_POS_INIT = min(self.C_POS_INIT * self.C_POS_RATE, self.C_POS_TARGET)
@@ -45,20 +47,24 @@ class CurriculumReward(object):
         vel_reward = -self.C_VEL_INIT*np.linalg.norm(observation[3:6])
 
         #Compute the quaternion error, dont use it for now
-        quat_reward = -self.C_ORIENT_INIT*np.linalg.norm(observation[6:10])
+        quat_reward = -self.C_ORIENT_INIT*(1 - observation[9]**2) #np.linalg.norm(observation[6:10])
 
         # Compute the angular rate reward, note that we set it to zero
         ang_rate_reward = -self.C_ANGVEL_INIT*np.linalg.norm(observation[10:13])
 
         # Compute the action reward
-        action_reward = -self.C_ACTION_INIT*np.linalg.norm(action)
+        action_reward = -self.C_ACTION_INIT*np.linalg.norm(action - self.rotor_speed_bs)
 
-        if np.linalg.norm(observation[0:3]) < 0.1 and np.linalg.norm(observation[3:6]) < 0.07:
+        if (np.linalg.norm(observation[0:3]) < 0.1 and
+                np.linalg.norm(observation[3:6]) < 0.05 and
+                np.linalg.norm(observation[10:13]) < 0.05):
             self.GOAL_REWARD = 10
         else:
             self.GOAL_REWARD = 0
 
         if done:
-            return dist_reward + vel_reward + ang_rate_reward + action_reward + self.GOAL_REWARD
+            return (dist_reward + vel_reward + ang_rate_reward + action_reward +
+                    self.GOAL_REWARD + quat_reward)
 
-        return dist_reward + vel_reward + ang_rate_reward + action_reward + self.SURVIVE_REWARD + self.GOAL_REWARD
+        return (dist_reward + vel_reward + ang_rate_reward + action_reward +
+                self.SURVIVE_REWARD + self.GOAL_REWARD + quat_reward)

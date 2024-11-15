@@ -218,10 +218,12 @@ class QuadrotorEnv(gym.Env):
             # Randomly select an initial state for the quadrotor. At least assume it is level. 
             pos = np.random.uniform(low=-options['pos_bound'], high=options['pos_bound'], size=(3,))
             vel = np.random.uniform(low=-options['vel_bound'], high=options['vel_bound'], size=(3,))
+            w = np.random.uniform(low=-1.0, high=1.0, size=(3,))
+            q = Rotation.from_euler('zyx', np.random.uniform(low=-np.pi/2, high=np.pi/2, size=(3,))).as_quat()
             state = {'x': pos,
                      'v': vel,
-                     'q': np.array([0, 0, 0, 1]), # [i,j,k,w]
-                     'w': np.zeros(3,),
+                     'q': q, #np.array([0,0,0,1]), # [i,j,k,w]   # [i,j,k,w]
+                     'w': w, #
                      'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten
                      'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])}
 
@@ -319,8 +321,12 @@ class QuadrotorEnv(gym.Env):
         # Determine whether or not the session should terminate.
         terminated = (self.t >= self.max_time) or not safe
 
+        # # # early stop
+        # if np.linalg.norm(observation[0:3]) < 0.15 and np.linalg.norm(observation[3:6]) < 0.05:
+        #     terminated = True
         # Now compute the reward based on the current state, and the action taken to this pos
-        self.reward = self._get_reward(observation, action, terminated) #if safe else -100.0
+        r = self._get_reward(observation, action, terminated)
+        self.reward = r if safe else -1000
 
         self.render()
 
@@ -407,6 +413,13 @@ class QuadrotorEnv(gym.Env):
             return False
         if self.vehicle_state['x'][2] < self.world.world['bounds']['extents'][4] or self.vehicle_state['x'][2] > self.world.world['bounds']['extents'][5]:
             return False
+        #
+        # if self.vehicle_state['x'][0] < -6.0 or self.vehicle_state['x'][0] > 6.0:
+        #     return False
+        # if self.vehicle_state['x'][1] < -6.0 or self.vehicle_state['x'][1] > 6.0:
+        #     return False
+        # if self.vehicle_state['x'][2] < -6.0 or self.vehicle_state['x'][2] > 6.0:
+        #     return False
 
 
         if len(self.world.world.get('blocks', [])) > 0:

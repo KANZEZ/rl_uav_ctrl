@@ -41,7 +41,7 @@ max_action = float(env.action_space.high[0])
 ######### model setting ###########
 pos_dim, rot_dim, vel_dim, w_dim, action_dim = 3, 4, 3, 3, 4
 obs_dim = pos_dim + vel_dim + rot_dim + w_dim # 13
-pos_bound, vel_bound = 0.8, 0.8
+pos_bound, vel_bound = 3.0, 1.0
 
 model = DDPG(obs_dim, action_dim)
 ac_obj = ActionContainer(action_dim)
@@ -112,14 +112,6 @@ for t in range(int(max_timesteps)):
     observation = next_observation
     episode_reward += reward
 
-    # exploration noise decay, update noise_std
-    if t > expl_noise_decay_start and (t+1) % expl_noise_decay_interval == 0:
-        model.update_noise()
-
-    # cirriculum learning
-    if (t+1) % reward_update_interval == 0:
-        reward_obj.curriculum_update()
-
     if done:
         print(f"Total T: {t+1} Episode Num: {episode_num+1} Episode T: {episode_timesteps} Reward: {episode_reward:.3f}")
         reset_way = np.random.choice(['random', 'guidance'],
@@ -131,6 +123,15 @@ for t in range(int(max_timesteps)):
         episode_timesteps = 0
         episode_num += 1
         ac_obj.clear() ### clear action history after one game over
+
+    # exploration noise decay, update noise_std
+    if t > expl_noise_decay_start and (t+1) % expl_noise_decay_interval == 0:
+        model.update_noise()
+
+    # cirriculum learning
+    if (t+1) % reward_update_interval == 0:
+        reward_obj.curriculum_update()
+        model.replay_buffer.reward_recalculation(reward_obj)
 
     if (t + 1) % eval_freq == 0:
         #model.eval_mode()

@@ -17,6 +17,7 @@ class ActionContainer(object):
     def clear(self):
         self.container[:] = 0
 
+
 class ReplayBuffer(object):
     def __init__(self, obs_dim, action_dim, ah_len=int(32), max_size=int(3e5)):
         self.max_size = max_size
@@ -54,8 +55,7 @@ class ReplayBuffer(object):
         )
 
 
-    # ## dont use it for now
-    # def reward_recalculation(self):
-    #     for i in range(self.max_size):
-    #         self.reward[i] = self.reward_func(self.obs[i], self.action[i], self.not_done[i])
+    def reward_recalculation(self, reward_obj):
+        for i in range(self.size):
+            self.reward[i] = reward_obj.reward(self.next_obs[i], self.action[i], self.done[i])
 

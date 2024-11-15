@@ -7,6 +7,7 @@ todo:
 2.3 reward shaping: cirriculum learning and (reward recalculation) (done)
 2.4 action history (done)
 2.5 Guidance (done)
+2.6 multi-processing
 
 3. train the model in the wind env
 

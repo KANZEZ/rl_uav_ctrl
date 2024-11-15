@@ -9,9 +9,9 @@ from rotorpy.vehicles.crazyflie_params import quad_params
 
 if __name__ == "__main__":
     # Set the seed for reproducibility
-    pos_bound, vel_bound = 3.0, 1.9
+    pos_bound, vel_bound = 2.0, 0.5
     model = DDPG(13, 4)
-    path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/22-27-53/"
+    path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/01-37-38/"
     # Load the policy
     model.load(path)
     model.eval_mode()
@@ -33,6 +33,7 @@ if __name__ == "__main__":
     for _ in range(eval_episodes):
         obs, done = eval_env.reset(initial_state='random', options={'pos_bound': pos_bound,
                                                                                   'vel_bound': vel_bound})[0], False
+        print("initial state: ", obs)
         ac_obj.clear()
         while 1:
             cur_ah = ac_obj.get()
