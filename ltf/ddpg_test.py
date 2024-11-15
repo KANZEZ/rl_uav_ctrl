@@ -90,7 +90,7 @@ if __name__ == "__main__":
                         render_fps = 60,
                         fig=fig,
                         ax=ax,
-                        color='b',
+                        color='r',
                         wind_profile=wind_profile)
 
     envs = [make_env() for _ in range(num_quads)]
