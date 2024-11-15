@@ -3,7 +3,6 @@ from scipy.spatial.transform import Rotation
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
-from enum import Enum
 from rotorpy.world import World
 from rotorpy.vehicles.multirotor import Multirotor
 from rotorpy.vehicles.crazyflie_params import quad_params as crazyflie_params
@@ -15,6 +14,9 @@ from gymnasium import spaces
 
 import math
 from copy import deepcopy
+
+############################### ENVIRONMENT ####################################
+
 
 class QuadrotorEnv(gym.Env):
     """
@@ -65,7 +67,8 @@ class QuadrotorEnv(gym.Env):
                  fig = None,                  # Figure for rendering. Optional. 
                  ax = None,                   # Axis for rendering. Optional. 
                  color = None,                # The color of the quadrotor. 
-                ):
+                 obs_dim = 13,                # The observation dimension
+                    action_dim = 4):             # The action dimension
         super(QuadrotorEnv, self).__init__()
 
         self.metadata['render_fps'] = render_fps
@@ -101,8 +104,8 @@ class QuadrotorEnv(gym.Env):
         #     motor_speeds, rotor_speeds, observation_state[16:20]
         # For simplicitly, we assume these observations can lie within -inf to inf. 
 
-        self.observation_space = spaces.Box(low = -np.inf, high=np.inf, shape = (13,), dtype=np.float32)
-        
+        self.observation_space = spaces.Box(low = -np.inf, high=np.inf, shape = (obs_dim,), dtype=np.float32)
+
         ############ ACTION SPACE
 
         # For generalizability, we assume the controller outputs 4 numbers between -1 and 1. Depending on the control mode, we scale these appropriately. 
@@ -184,7 +187,7 @@ class QuadrotorEnv(gym.Env):
             # Close the plots
             plt.close('all')
     
-    def reset(self, seed=None, initial_state='random', options={'pos_bound': 2, 'vel_bound': 0}):
+    def reset(self, seed=None, initial_state='random', options={'pos_bound': 1, 'vel_bound': 0}):
         """
         Reset the environment
         Inputs:
@@ -224,6 +227,17 @@ class QuadrotorEnv(gym.Env):
 
         elif initial_state == 'deterministic':
             state = self.initial_state
+
+        ### add gudiance
+        elif initial_state == 'guidance':
+            pos = np.array([0,0,0])
+            vel = np.random.uniform(low=-options['vel_bound'], high=options['vel_bound'], size=(3,))
+            state = {'x': pos,
+                     'v': vel,
+                     'q': np.array([0, 0, 0, 1]), # [i,j,k,w]
+                     'w': np.zeros(3,),
+                     'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten
+                     'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])}
         
         elif isinstance(initial_state, dict):
             # Ensure the correct keys are in dict.  
@@ -243,14 +257,13 @@ class QuadrotorEnv(gym.Env):
 
         # Reset the reward
         self.reward = 0.0
-        
+
         # Now get observation and info using the new state
         observation = self._get_obs()
-        info = self._get_info()
 
         self.render()
 
-        return (observation, info)
+        return observation
     
 
     def step(self, action):
@@ -292,31 +305,26 @@ class QuadrotorEnv(gym.Env):
 
         # Now update the wind state using the wind profile
         self.vehicle_state['wind'] = self.wind_profile.update(self.t, self.vehicle_state['x'])
-
         # Last perform forward integration using the commanded motor speed and the current state
         self.vehicle_state = self.quadrotor.step(self.vehicle_state, self.control_dict, self.t_step)
-        observation = self._get_obs()
-        
+        observation = self._get_obs() # next state observation
         # Update t by t_step
         self.t += self.t_step
 
         # Check for safety
         safe = self.safety_exit()
 
-        # Determine whether or not the session should terminate. 
+        # Determine whether or not the session should terminate.
         terminated = (self.t >= self.max_time) or not safe
 
-        # Now compute the reward based on the current state
-        self.reward = self._get_reward(observation, action) if safe else -500.0
-
-        # Finally get info
-        info = self._get_info()
-
-        truncated = False
+        # Now compute the reward based on the current state, and the action taken to this pos
+        self.reward = self._get_reward(observation, action, terminated) if safe else -100.0
 
         self.render()
 
-        return (observation, self.reward, terminated, truncated, info)
+        info = {} # must have 4-5 output
+
+        return observation, self.reward, terminated, info
     
     def close(self):
         """
@@ -369,7 +377,7 @@ class QuadrotorEnv(gym.Env):
 
             return control_dict
     
-    def _get_reward(self, observation, action):
+    def _get_reward(self, observation, action, done):
         """
         Compute the reward for the current state and goal.
         Inputs:
@@ -379,7 +387,7 @@ class QuadrotorEnv(gym.Env):
             the current reward.
         """
 
-        return self.reward_fn(observation, action)
+        return self.reward_fn(observation, action, done)
     
     def safety_exit(self):
         """
@@ -409,9 +417,6 @@ class QuadrotorEnv(gym.Env):
         state_vec = np.concatenate([self.vehicle_state['x'], self.vehicle_state['v'], self.vehicle_state['q'], self.vehicle_state['w']], dtype=np.float32)
 
         return state_vec
-    
-    def _get_info(self):
-        return {}
 
     def _plot_quad(self):
 
