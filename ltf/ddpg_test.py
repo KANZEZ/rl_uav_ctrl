@@ -9,6 +9,7 @@ from reward import CurriculumReward
 from env_helper import ActionContainer
 from rotorpy.vehicles.crazyflie_params import quad_params
 from rotorpy.controllers.quadrotor_control import SE3Control
+from rotorpy.wind.default_winds import NoWind, ConstantWind, SinusoidWind, LadderWind
 baseline_controller = SE3Control(quad_params)
 
 
@@ -66,7 +67,7 @@ if __name__ == "__main__":
     ax = fig.add_subplot(projection='3d')
 
     # Make the environments for the RL agents.
-    num_quads = 15
+    num_quads = 2
     pos_bound, vel_bound = 6.0, 4.0
     model = DDPG(13, 4)
     path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/02-46-05/"
@@ -88,7 +89,8 @@ if __name__ == "__main__":
                         render_fps = 60,
                         fig=fig,
                         ax=ax,
-                        color='b')
+                        color='b',
+                        wind_profile=SinusoidWind(amplitudes=[8,8,8]))
 
     envs = [make_env() for _ in range(num_quads)]
 
@@ -104,7 +106,8 @@ if __name__ == "__main__":
                          render_fps = 60,
                          fig=fig,
                          ax=ax,
-                         color='k'))  # Geometric controller
+                         color='k',
+                         wind_profile=SinusoidWind(amplitudes=[8,8,8])))  # Geometric controller
 
     # Evaluation...
     num_timesteps_idxs = [1]
