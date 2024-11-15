@@ -263,7 +263,9 @@ class QuadrotorEnv(gym.Env):
 
         self.render()
 
-        return observation
+        info = {}
+
+        return observation, info
     
 
     def step(self, action):
@@ -318,13 +320,14 @@ class QuadrotorEnv(gym.Env):
         terminated = (self.t >= self.max_time) or not safe
 
         # Now compute the reward based on the current state, and the action taken to this pos
-        self.reward = self._get_reward(observation, action, terminated) if safe else -100.0
+        self.reward = self._get_reward(observation, action, terminated) #if safe else -100.0
 
         self.render()
 
         info = {} # must have 4-5 output
+        truncated = False
 
-        return observation, self.reward, terminated, info
+        return observation, self.reward, terminated, truncated, info
     
     def close(self):
         """
@@ -388,6 +391,7 @@ class QuadrotorEnv(gym.Env):
         """
 
         return self.reward_fn(observation, action, done)
+        #return self.reward_fn(observation, action)
     
     def safety_exit(self):
         """
@@ -403,6 +407,7 @@ class QuadrotorEnv(gym.Env):
             return False
         if self.vehicle_state['x'][2] < self.world.world['bounds']['extents'][4] or self.vehicle_state['x'][2] > self.world.world['bounds']['extents'][5]:
             return False
+
 
         if len(self.world.world.get('blocks', [])) > 0:
             # If a world has objects in it we need to check for collisions.  

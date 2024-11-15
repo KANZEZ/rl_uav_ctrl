@@ -17,7 +17,7 @@ def eval_policy(policy, env_name, seed, pos_bound, vel_bound, eval_episodes=30, 
                         control_mode ='cmd_motor_speeds',
                         reward_fn = reward_function,
                         quad_params = quad_params,
-                        max_time = 50,
+                        max_time = 5,
                         world = None,
                         sim_rate = 100,
                         render_mode=render)
@@ -25,13 +25,13 @@ def eval_policy(policy, env_name, seed, pos_bound, vel_bound, eval_episodes=30, 
     avg_reward = 0.
     for _ in range(eval_episodes):
         obs, done = eval_env.reset(seed=seed+99, initial_state='random', options={'pos_bound': pos_bound,
-                                                                                  'vel_bound': vel_bound}), False
+                                                                                  'vel_bound': vel_bound})[0], False
         ac_obj.clear()
         while not done:
             cur_ah = ac_obj.get()
             action = policy.select_action(obs, cur_ah)
             ac_obj.add(action)
-            obs, reward, done, _ = eval_env.step(action)
+            obs, reward, done, _, _ = eval_env.step(action)
             avg_reward += reward
 
     avg_reward /= eval_episodes

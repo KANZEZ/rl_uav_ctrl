@@ -60,13 +60,13 @@ env = gym.make("Quadrotor-v0",
 # check_env(env, warn=True)  # you can check the environment using built-in tools
 
 # Reset the environment
-observation, info = env.reset(initial_state='random', options={'pos_bound': 2, 'vel_bound': 0})
+observation, info = env.reset(initial_state='random', options={'pos_bound': 1, 'vel_bound': 0.5})
 
 # Create a new model
 model = PPO(MlpPolicy, env, verbose=1, ent_coef=0.01, tensorboard_log=log_dir)
-#n_actions = env.action_space.shape[-1]
-#action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
-#model = DDPG("MlpPolicy", env, action_noise=action_noise, verbose=1)
+# n_actions = env.action_space.shape[-1]
+# action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
+# model = DDPG("MlpPolicy", env, action_noise=action_noise, verbose=1)
 
 # Training... 
 num_timesteps = 20_000

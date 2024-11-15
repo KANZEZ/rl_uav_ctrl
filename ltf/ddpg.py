@@ -42,14 +42,35 @@ class Critic(nn.Module):  # bzs = 256
     def __init__(self, input_dim, output_dim):
         super(Critic, self).__init__()
 
+        # Q1 architecture
         self.l1 = nn.Linear(input_dim, 64)
         self.l2 = nn.Linear(64, 64)
-        self.l3 = nn.Linear(64, output_dim)
+        self.l3 = nn.Linear(64, 1)
+
+        # Q2 architecture
+        self.l4 = nn.Linear(input_dim, 64)
+        self.l5 = nn.Linear(64, 64)
+        self.l6 = nn.Linear(64, output_dim)
 
     def forward(self, obs, action):
-        q = F.tanh(self.l1(torch.cat([obs, action], 1)))
-        q = F.tanh(self.l2(q))
-        return self.l3(q)
+        sa = torch.cat([obs, action], 1)
+
+        q1 = F.relu(self.l1(sa))
+        q1 = F.relu(self.l2(q1))
+        q1 = self.l3(q1)
+
+        q2 = F.relu(self.l4(sa))
+        q2 = F.relu(self.l5(q2))
+        q2 = self.l6(q2)
+        return q1, q2
+
+    def Q1(self, obs, action):
+        sa = torch.cat([obs, action], 1)
+
+        q1 = F.relu(self.l1(sa))
+        q1 = F.relu(self.l2(q1))
+        q1 = self.l3(q1)
+        return q1
 
 
 class DDPG(object):
@@ -60,17 +81,21 @@ class DDPG(object):
         """
         self.actor = Actor(obs_dim+action_dim*max_ah_size, action_dim).to(device)
         self.actor_target = copy.deepcopy(self.actor)
-        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=1e-4)
+        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=0.003)
+        self.act_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.actor_optimizer, T_max=100)
 
         self.critic = Critic(obs_dim+action_dim, 1).to(device)
         self.critic_target = copy.deepcopy(self.critic)
-        self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=1e-4)
+        self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=0.003)
+        self.cri_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.critic_optimizer, T_max=100)
 
         self.discount = discount
         self.tau = tau
         self.min_noise = 0.01
-        self.noise_std = 0.5
+        self.noise_std = 0.4
         self.decay_rate = 0.9
+        self.act_tar_noise = 0.5
+        self.clip = 0.5
 
         self.replay_buffer = ReplayBuffer(obs_dim, action_dim)
 
@@ -90,44 +115,53 @@ class DDPG(object):
 
 ####### training algorithm ###############
 
-    def train_critic(self, obs, action, ah,
-                     next_obs, reward, done):
-        # Compute the target Q value
-        next_ah = torch.cat([ah[:, 4:], action], 1)
-        target_Q = self.critic_target(next_obs, self.actor_target(next_obs, next_ah))
-        target_Q = reward + ((1.0 - done) * self.discount * target_Q).detach()
+    def train(self, batch_size, train_mode):
+        """
+        train_mode: 0 for critic only, 1 for both
+        """
+        obs, action, ah, next_obs, reward, done = self.get_batch(batch_size)
+        with torch.no_grad():
+            noise = (torch.randn_like(action) * self.act_tar_noise
+            ).clamp(-self.clip, self.clip)
+            next_ah = torch.cat([ah[:, 4:], action], 1)
+            next_act = self.actor_target(next_obs, next_ah) + noise
+            target_Q1, target_Q2 = self.critic_target(next_obs, next_act)
+            target_Q = torch.min(target_Q1, target_Q2)
+            target_Q = reward + (1.0 - done) * self.discount * target_Q
 
         # Get current Q estimate
-        current_Q = self.critic(obs, action)
-
+        current_Q1, current_Q2 = self.critic(obs, action)
         # Compute critic loss
-        critic_loss = F.huber_loss(current_Q, target_Q)
+        critic_loss = F.huber_loss(current_Q1, target_Q) + F.huber_loss(current_Q2, target_Q)
 
         # Optimize the critic
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
+        self.cri_scheduler.step()
+
+        if train_mode == 1:
+            # Compute actor loss
+            actor_loss = -self.critic.Q1(obs, self.actor(obs, ah)).mean()
+            # Optimize the actor
+            self.actor_optimizer.zero_grad()
+            actor_loss.backward()
+            self.actor_optimizer.step()
+            self.act_scheduler.step()
+            # Update the frozen target models
+            self.update_target_critic()
+            self.update_target_actor()
 
     def update_target_critic(self):
         for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
             target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
-
-
-    def train_actor(self, obs, ah):
-        # Compute actor loss
-        actor_loss = -self.critic(obs, self.actor(obs, ah)).mean()
-        # Optimize the actor
-        self.actor_optimizer.zero_grad()
-        actor_loss.backward()
-        self.actor_optimizer.step()
-
 
     def update_target_actor(self):
         for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
             target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
 
 
-###################    save, load #########################
+###################  save, load #########################
 
     def save(self, filename):
         torch.save(self.critic.state_dict(), filename + "_critic")

@@ -9,12 +9,9 @@ from rotorpy.vehicles.crazyflie_params import quad_params
 
 if __name__ == "__main__":
     # Set the seed for reproducibility
-    seed = 1
-    pos_bound, vel_bound = 1.0, 0.2
-    np.random.seed(seed)
-    torch.manual_seed(seed)
+    pos_bound, vel_bound = 1.8, 0.5
     model = DDPG(13, 4)
-    path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/18-54-14/"
+    path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/22-27-53/"
     # Load the policy
     model.load(path)
     model.eval_mode()
@@ -34,14 +31,14 @@ if __name__ == "__main__":
     avg_reward = 0.
     eval_episodes = 1
     for _ in range(eval_episodes):
-        obs, done = eval_env.reset(seed=seed+99, initial_state='random', options={'pos_bound': pos_bound,
-                                                                                  'vel_bound': vel_bound}), False
+        obs, done = eval_env.reset(initial_state='random', options={'pos_bound': pos_bound,
+                                                                                  'vel_bound': vel_bound})[0], False
         ac_obj.clear()
-        while not done:
+        while 1:
             cur_ah = ac_obj.get()
             action = model.select_action(obs, cur_ah)
             ac_obj.add(action)
-            obs, reward, done, _ = eval_env.step(action)
+            obs, reward, done, _, _ = eval_env.step(action)
             avg_reward += reward
 
     avg_reward /= eval_episodes
