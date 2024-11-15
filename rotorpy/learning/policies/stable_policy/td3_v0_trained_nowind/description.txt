@@ -1,0 +1,5 @@
+version: 0
+policy: TD3
+use wind to train: no
+training time: 40min
+performance: stable and robust to wind disturbances 
