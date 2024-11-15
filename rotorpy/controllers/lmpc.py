@@ -1,6 +1,7 @@
 """
 Linear MPC for quadrotor control
 """
+
 import numpy as np
 from scipy.spatial.transform import Rotation  # This is a useful library for working with attitude.
 

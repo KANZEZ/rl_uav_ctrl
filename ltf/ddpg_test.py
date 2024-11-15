@@ -11,6 +11,9 @@ from rotorpy.vehicles.crazyflie_params import quad_params
 from rotorpy.controllers.quadrotor_control import SE3Control
 baseline_controller = SE3Control(quad_params)
 
+
+########## ##################### fast evaluation test here ############################
+
 # if __name__ == "__main__":
 #     # Set the seed for reproducibility
 #     pos_bound, vel_bound = 6.5, 3.0
@@ -53,14 +56,18 @@ baseline_controller = SE3Control(quad_params)
 
 
 
+
+ ##################### decent evaluation comparison here ############################
+
+
 if __name__ == "__main__":
     # Set up the figure for plotting all the agents.
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
 
     # Make the environments for the RL agents.
-    num_quads = 1
-    pos_bound, vel_bound = 6.5, 3.0
+    num_quads = 15
+    pos_bound, vel_bound = 6.0, 4.0
     model = DDPG(13, 4)
     path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/02-46-05/"
     # Load the policy
