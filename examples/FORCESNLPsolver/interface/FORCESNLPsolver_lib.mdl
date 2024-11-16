@@ -60,13 +60,13 @@ Model {
       }
     }
   }
-  Created		  "11/16/2024 8:36:36 AM"
+  Created		  "11/16/2024 9:02:57 AM"
   Creator		  "embotech AG"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "embotech AG"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "11/16/2024 8:36:36 AM"
+  LastModifiedDate	  "11/16/2024 9:02:57 AM"
   RTWModifiedTimeStamp	  315310195
   ModelVersionFormat	  "1.%<AutoIncrement:2>"
   ConfigurationManager	  "None"
@@ -767,7 +767,7 @@ Model {
       BlockType		      S-Function
       Name		      "FORCESNLPsolver"
       SID		      "1"
-      Ports		      [2, 3]
+      Ports		      [2, 10]
       Position		      [170, 99, 650, 180]
       ZOrder		      1
       FunctionName	      "FORCESNLPsolver_simulinkBlock"
@@ -805,20 +805,34 @@ Model {
 	"\nOUTPUTS = FORCESNLPsolver(INPUTS) solves an optimization problem where:\n\n"
 	"INPUTS:\n"
 	" - xinit - matrix of size [13x1]\n  "
-" - x0 - matrix of size [51x1]\n  "
+" - x0 - matrix of size [170x1]\n  "
 
 	"\nOUTPUTS:\n"
-	" - x1 - column vector of length 17\n  "
-" - x2 - column vector of length 17\n  "
-" - x3 - column vector of length 17\n  "
+	" - x01 - column vector of length 17\n  "
+" - x02 - column vector of length 17\n  "
+" - x03 - column vector of length 17\n  "
+" - x04 - column vector of length 17\n  "
+" - x05 - column vector of length 17\n  "
+" - x06 - column vector of length 17\n  "
+" - x07 - column vector of length 17\n  "
+" - x08 - column vector of length 17\n  "
+" - x09 - column vector of length 17\n  "
+" - x10 - column vector of length 17\n  "
 
 	"\n For more information, see https://forces.embotech.com/Documentation/simulink_interface/index.html \n "
 
 	Display			"port_label('input', 1, 'xinit') \n  "
 "port_label('input', 2, 'x0') \n  "
-"port_label('output', 1, 'x1') \n  "
-"port_label('output', 2, 'x2') \n  "
-"port_label('output', 3, 'x3') \n  "
+"port_label('output', 1, 'x01') \n  "
+"port_label('output', 2, 'x02') \n  "
+"port_label('output', 3, 'x03') \n  "
+"port_label('output', 4, 'x04') \n  "
+"port_label('output', 5, 'x05') \n  "
+"port_label('output', 6, 'x06') \n  "
+"port_label('output', 7, 'x07') \n  "
+"port_label('output', 8, 'x08') \n  "
+"port_label('output', 9, 'x09') \n  "
+"port_label('output', 10, 'x10') \n  "
 "if( exist('FORCES_PRO_Logo.jpg','file') ), image(imread('FORCES_PRO_Logo.jpg'),'center','on'); elseif( exist(['interface',filesep,'FORCES_PRO_Logo.jpg'],'file') ), image(imread(['interface',filesep,'FORCES_PRO_Logo.jpg']),'center','on'); elseif( exist(['FORCESNLPsolver',filesep,'interface',filesep,'FORCES_PRO_Logo.jpg'],'file') ), image(imread(['FORCESNLPsolver',filesep,'interface',filesep,'FORCES_PRO_Logo.jpg']),'center','on'); end \n "
 
       }

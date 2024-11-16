@@ -125,13 +125,13 @@ class NonlinearMPC(object):
         Objective function for the nonlinear MPC problem
         """
         #return casadi.mtimes(x.T, casadi.mtimes(self.Q, x)) + casadi.mtimes(u.T, casadi.mtimes(self.R, u))
-        return 50 * casadi.sumsqr(x[:3]) + 5 * casadi.sumsqr(x[3:6]) + 0.2 * casadi.sumsqr(u)
+        return 10 * casadi.sumsqr(x[:3]) + 10 * casadi.sumsqr(x[3:6]) #+ 0.01 * casadi.sumsqr(u)
 
     def objN(self, x):
         """
         Objective function for the nonlinear MPC problem at the final time
         """
-        return 80 * casadi.sumsqr(x[:3]) + 8 * casadi.sumsqr(x[3:6])
+        return 10 * casadi.sumsqr(x[:3]) + 10 * casadi.sumsqr(x[3:6])
 
 
     def generate_mpc_problem(self):
@@ -260,12 +260,12 @@ class NonlinearMPC(object):
         state_vec = np.concatenate([sx, sv, sq, sw]).reshape(-1, 1)
         #print("current state: ", state_vec)
 
-        # if t == 0:
-        x0i = np.zeros((self.model.nvar,1))
-            # x0i[4:] = np.copy(state_vec)
-        x0 = np.transpose(np.tile(x0i, (1, self.model.N)))
-        # else:
-            # x0 = np.copy(self.x0)
+        if t == 0:
+            x0i = np.zeros((self.model.nvar,1))
+            x0i[4:] = np.copy(state_vec)
+            x0 = np.transpose(np.tile(x0i, (1, self.model.N)))
+        else:
+            x0 = np.copy(self.x0)
 
         xinit = np.transpose(state_vec)
         problem = {"x0": x0,
@@ -279,7 +279,8 @@ class NonlinearMPC(object):
 
         temp = np.zeros((np.max(self.model.nvar), self.model.N))
         for i in range(self.model.N):
-            temp[:, i] = output[f'x{i+1}']
+            #print(output)
+            temp[:, i] = output['x{0:02d}'.format(i+1)]
         pred_u = temp[0:4, :]
 
         self.x0 = np.copy(temp)

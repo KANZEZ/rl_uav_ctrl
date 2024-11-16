@@ -67,14 +67,14 @@ function FORCESNLPsolver_createCoderMatlabFunction(modelname, blockname, useComp
     end
     
     function_name = 'FORCESNLPsolver_coderFunction.m';
-    position = [170, 99, 650, 231];
+    position = [170, 99, 650, 350];
     parameter_sizes = struct('xinit', '[13,1]',...
-                             'x0', '[51,1]');
+                             'x0', '[170,1]');
     if useCompactBlock
         function_name = 'FORCESNLPsolver_coderFunctioncompact.m';
         position = [170, 99, 650, 231];
         parameter_sizes = struct('xinit', '[13,1]',...
-                                 'x0', '[51,1]');
+                                 'x0', '[170,1]');
     end
     
     result = exist(modelname, 'file');

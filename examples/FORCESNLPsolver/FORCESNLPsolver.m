@@ -3,12 +3,19 @@
 %   OUTPUT = FORCESNLPsolver(PARAMS) solves a multistage problem
 %   subject to the parameters supplied in the following struct:
 %       PARAMS.xinit - matrix of size [13x1]
-%       PARAMS.x0 - matrix of size [51x1]
+%       PARAMS.x0 - matrix of size [170x1]
 %
 %   OUTPUT returns the values of the last iteration of the solver where
-%       OUTPUT.x1 - column vector of length 17
-%       OUTPUT.x2 - column vector of length 17
-%       OUTPUT.x3 - column vector of length 17
+%       OUTPUT.x01 - column vector of length 17
+%       OUTPUT.x02 - column vector of length 17
+%       OUTPUT.x03 - column vector of length 17
+%       OUTPUT.x04 - column vector of length 17
+%       OUTPUT.x05 - column vector of length 17
+%       OUTPUT.x06 - column vector of length 17
+%       OUTPUT.x07 - column vector of length 17
+%       OUTPUT.x08 - column vector of length 17
+%       OUTPUT.x09 - column vector of length 17
+%       OUTPUT.x10 - column vector of length 17
 %
 %   [OUTPUT, EXITFLAG] = FORCESNLPsolver(PARAMS) returns additionally
 %   the integer EXITFLAG indicating the state of the solution with 

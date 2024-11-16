@@ -13,8 +13,7 @@ extern "C" {
   #define CASADI_PREFIX(ID) FORCESNLPsolver_model_ ## ID
 #endif
 
-#include <math.h> 
-#include "FORCESNLPsolver_model.h"
+#include <math.h>
 
 #ifndef casadi_real
 #define casadi_real FORCESNLPsolver_float
@@ -37,15 +36,15 @@ extern "C" {
 #define casadi_sq CASADI_PREFIX(sq)
 
 /* Symbol visibility in DLLs */
-#if 0
+#ifndef CASADI_SYMBOL_EXPORT
   #if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
     #if defined(STATIC_LINKED)
       #define CASADI_SYMBOL_EXPORT
     #else
-      #define __declspec(dllexport)
+      #define CASADI_SYMBOL_EXPORT __declspec(dllexport)
     #endif
   #elif defined(__GNUC__) && defined(GCC_HASCLASSVISIBILITY)
-    #define __attribute__ ((visibility ("default")))
+    #define CASADI_SYMBOL_EXPORT __attribute__ ((visibility ("default")))
   #else
     #define CASADI_SYMBOL_EXPORT
   #endif
@@ -105,45 +104,45 @@ static int casadi_f0(const casadi_real** arg, casadi_real** res, casadi_int* iw,
   return 0;
 }
 
-int FORCESNLPsolver_objective_0(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem){
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_objective_0(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem){
   return casadi_f0(arg, res, iw, w, mem);
 }
 
-int FORCESNLPsolver_objective_0_alloc_mem(void) {
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_objective_0_alloc_mem(void) {
   return 0;
 }
 
-int FORCESNLPsolver_objective_0_init_mem(int mem) {
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_objective_0_init_mem(int mem) {
   return 0;
 }
 
-void FORCESNLPsolver_objective_0_free_mem(int mem) {
+CASADI_SYMBOL_EXPORT void FORCESNLPsolver_objective_0_free_mem(int mem) {
 }
 
-int FORCESNLPsolver_objective_0_checkout(void) {
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_objective_0_checkout(void) {
   return 0;
 }
 
-void FORCESNLPsolver_objective_0_release(int mem) {
+CASADI_SYMBOL_EXPORT void FORCESNLPsolver_objective_0_release(int mem) {
 }
 
-void FORCESNLPsolver_objective_0_incref(void) {
+CASADI_SYMBOL_EXPORT void FORCESNLPsolver_objective_0_incref(void) {
 }
 
-void FORCESNLPsolver_objective_0_decref(void) {
+CASADI_SYMBOL_EXPORT void FORCESNLPsolver_objective_0_decref(void) {
 }
 
-casadi_int FORCESNLPsolver_objective_0_n_in(void) { return 2;}
+CASADI_SYMBOL_EXPORT casadi_int FORCESNLPsolver_objective_0_n_in(void) { return 2;}
 
-casadi_int FORCESNLPsolver_objective_0_n_out(void) { return 2;}
+CASADI_SYMBOL_EXPORT casadi_int FORCESNLPsolver_objective_0_n_out(void) { return 2;}
 
-casadi_real FORCESNLPsolver_objective_0_default_in(casadi_int i){
+CASADI_SYMBOL_EXPORT casadi_real FORCESNLPsolver_objective_0_default_in(casadi_int i){
   switch (i) {
     default: return 0;
   }
 }
 
-const char* FORCESNLPsolver_objective_0_name_in(casadi_int i){
+CASADI_SYMBOL_EXPORT const char* FORCESNLPsolver_objective_0_name_in(casadi_int i){
   switch (i) {
     case 0: return "i0";
     case 1: return "i1";
@@ -151,7 +150,7 @@ const char* FORCESNLPsolver_objective_0_name_in(casadi_int i){
   }
 }
 
-const char* FORCESNLPsolver_objective_0_name_out(casadi_int i){
+CASADI_SYMBOL_EXPORT const char* FORCESNLPsolver_objective_0_name_out(casadi_int i){
   switch (i) {
     case 0: return "o0";
     case 1: return "o1";
@@ -159,7 +158,7 @@ const char* FORCESNLPsolver_objective_0_name_out(casadi_int i){
   }
 }
 
-const casadi_int* FORCESNLPsolver_objective_0_sparsity_in(casadi_int i) {
+CASADI_SYMBOL_EXPORT const casadi_int* FORCESNLPsolver_objective_0_sparsity_in(casadi_int i) {
   switch (i) {
     case 0: return casadi_s0;
     case 1: return casadi_s1;
@@ -167,7 +166,7 @@ const casadi_int* FORCESNLPsolver_objective_0_sparsity_in(casadi_int i) {
   }
 }
 
-const casadi_int* FORCESNLPsolver_objective_0_sparsity_out(casadi_int i) {
+CASADI_SYMBOL_EXPORT const casadi_int* FORCESNLPsolver_objective_0_sparsity_out(casadi_int i) {
   switch (i) {
     case 0: return casadi_s2;
     case 1: return casadi_s3;
@@ -175,7 +174,7 @@ const casadi_int* FORCESNLPsolver_objective_0_sparsity_out(casadi_int i) {
   }
 }
 
-int FORCESNLPsolver_objective_0_work(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, casadi_int *sz_w) {
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_objective_0_work(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, casadi_int *sz_w) {
   if (sz_arg) *sz_arg = 2;
   if (sz_res) *sz_res = 2;
   if (sz_iw) *sz_iw = 0;
@@ -5469,45 +5468,45 @@ static int casadi_f1(const casadi_real** arg, casadi_real** res, casadi_int* iw,
   return 0;
 }
 
-int FORCESNLPsolver_dynamics_0(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem){
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_dynamics_0(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem){
   return casadi_f1(arg, res, iw, w, mem);
 }
 
-int FORCESNLPsolver_dynamics_0_alloc_mem(void) {
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_dynamics_0_alloc_mem(void) {
   return 0;
 }
 
-int FORCESNLPsolver_dynamics_0_init_mem(int mem) {
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_dynamics_0_init_mem(int mem) {
   return 0;
 }
 
-void FORCESNLPsolver_dynamics_0_free_mem(int mem) {
+CASADI_SYMBOL_EXPORT void FORCESNLPsolver_dynamics_0_free_mem(int mem) {
 }
 
-int FORCESNLPsolver_dynamics_0_checkout(void) {
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_dynamics_0_checkout(void) {
   return 0;
 }
 
-void FORCESNLPsolver_dynamics_0_release(int mem) {
+CASADI_SYMBOL_EXPORT void FORCESNLPsolver_dynamics_0_release(int mem) {
 }
 
-void FORCESNLPsolver_dynamics_0_incref(void) {
+CASADI_SYMBOL_EXPORT void FORCESNLPsolver_dynamics_0_incref(void) {
 }
 
-void FORCESNLPsolver_dynamics_0_decref(void) {
+CASADI_SYMBOL_EXPORT void FORCESNLPsolver_dynamics_0_decref(void) {
 }
 
-casadi_int FORCESNLPsolver_dynamics_0_n_in(void) { return 2;}
+CASADI_SYMBOL_EXPORT casadi_int FORCESNLPsolver_dynamics_0_n_in(void) { return 2;}
 
-casadi_int FORCESNLPsolver_dynamics_0_n_out(void) { return 2;}
+CASADI_SYMBOL_EXPORT casadi_int FORCESNLPsolver_dynamics_0_n_out(void) { return 2;}
 
-casadi_real FORCESNLPsolver_dynamics_0_default_in(casadi_int i){
+CASADI_SYMBOL_EXPORT casadi_real FORCESNLPsolver_dynamics_0_default_in(casadi_int i){
   switch (i) {
     default: return 0;
   }
 }
 
-const char* FORCESNLPsolver_dynamics_0_name_in(casadi_int i){
+CASADI_SYMBOL_EXPORT const char* FORCESNLPsolver_dynamics_0_name_in(casadi_int i){
   switch (i) {
     case 0: return "i0";
     case 1: return "i1";
@@ -5515,7 +5514,7 @@ const char* FORCESNLPsolver_dynamics_0_name_in(casadi_int i){
   }
 }
 
-const char* FORCESNLPsolver_dynamics_0_name_out(casadi_int i){
+CASADI_SYMBOL_EXPORT const char* FORCESNLPsolver_dynamics_0_name_out(casadi_int i){
   switch (i) {
     case 0: return "o0";
     case 1: return "o1";
@@ -5523,7 +5522,7 @@ const char* FORCESNLPsolver_dynamics_0_name_out(casadi_int i){
   }
 }
 
-const casadi_int* FORCESNLPsolver_dynamics_0_sparsity_in(casadi_int i) {
+CASADI_SYMBOL_EXPORT const casadi_int* FORCESNLPsolver_dynamics_0_sparsity_in(casadi_int i) {
   switch (i) {
     case 0: return casadi_s0;
     case 1: return casadi_s1;
@@ -5531,7 +5530,7 @@ const casadi_int* FORCESNLPsolver_dynamics_0_sparsity_in(casadi_int i) {
   }
 }
 
-const casadi_int* FORCESNLPsolver_dynamics_0_sparsity_out(casadi_int i) {
+CASADI_SYMBOL_EXPORT const casadi_int* FORCESNLPsolver_dynamics_0_sparsity_out(casadi_int i) {
   switch (i) {
     case 0: return casadi_s4;
     case 1: return casadi_s5;
@@ -5539,7 +5538,7 @@ const casadi_int* FORCESNLPsolver_dynamics_0_sparsity_out(casadi_int i) {
   }
 }
 
-int FORCESNLPsolver_dynamics_0_work(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, casadi_int *sz_w) {
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_dynamics_0_work(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, casadi_int *sz_w) {
   if (sz_arg) *sz_arg = 2;
   if (sz_res) *sz_res = 2;
   if (sz_iw) *sz_iw = 0;
@@ -5592,45 +5591,45 @@ static int casadi_f2(const casadi_real** arg, casadi_real** res, casadi_int* iw,
   return 0;
 }
 
-int FORCESNLPsolver_objective_1(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem){
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_objective_1(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem){
   return casadi_f2(arg, res, iw, w, mem);
 }
 
-int FORCESNLPsolver_objective_1_alloc_mem(void) {
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_objective_1_alloc_mem(void) {
   return 0;
 }
 
-int FORCESNLPsolver_objective_1_init_mem(int mem) {
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_objective_1_init_mem(int mem) {
   return 0;
 }
 
-void FORCESNLPsolver_objective_1_free_mem(int mem) {
+CASADI_SYMBOL_EXPORT void FORCESNLPsolver_objective_1_free_mem(int mem) {
 }
 
-int FORCESNLPsolver_objective_1_checkout(void) {
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_objective_1_checkout(void) {
   return 0;
 }
 
-void FORCESNLPsolver_objective_1_release(int mem) {
+CASADI_SYMBOL_EXPORT void FORCESNLPsolver_objective_1_release(int mem) {
 }
 
-void FORCESNLPsolver_objective_1_incref(void) {
+CASADI_SYMBOL_EXPORT void FORCESNLPsolver_objective_1_incref(void) {
 }
 
-void FORCESNLPsolver_objective_1_decref(void) {
+CASADI_SYMBOL_EXPORT void FORCESNLPsolver_objective_1_decref(void) {
 }
 
-casadi_int FORCESNLPsolver_objective_1_n_in(void) { return 2;}
+CASADI_SYMBOL_EXPORT casadi_int FORCESNLPsolver_objective_1_n_in(void) { return 2;}
 
-casadi_int FORCESNLPsolver_objective_1_n_out(void) { return 2;}
+CASADI_SYMBOL_EXPORT casadi_int FORCESNLPsolver_objective_1_n_out(void) { return 2;}
 
-casadi_real FORCESNLPsolver_objective_1_default_in(casadi_int i){
+CASADI_SYMBOL_EXPORT casadi_real FORCESNLPsolver_objective_1_default_in(casadi_int i){
   switch (i) {
     default: return 0;
   }
 }
 
-const char* FORCESNLPsolver_objective_1_name_in(casadi_int i){
+CASADI_SYMBOL_EXPORT const char* FORCESNLPsolver_objective_1_name_in(casadi_int i){
   switch (i) {
     case 0: return "i0";
     case 1: return "i1";
@@ -5638,7 +5637,7 @@ const char* FORCESNLPsolver_objective_1_name_in(casadi_int i){
   }
 }
 
-const char* FORCESNLPsolver_objective_1_name_out(casadi_int i){
+CASADI_SYMBOL_EXPORT const char* FORCESNLPsolver_objective_1_name_out(casadi_int i){
   switch (i) {
     case 0: return "o0";
     case 1: return "o1";
@@ -5646,7 +5645,7 @@ const char* FORCESNLPsolver_objective_1_name_out(casadi_int i){
   }
 }
 
-const casadi_int* FORCESNLPsolver_objective_1_sparsity_in(casadi_int i) {
+CASADI_SYMBOL_EXPORT const casadi_int* FORCESNLPsolver_objective_1_sparsity_in(casadi_int i) {
   switch (i) {
     case 0: return casadi_s0;
     case 1: return casadi_s1;
@@ -5654,7 +5653,7 @@ const casadi_int* FORCESNLPsolver_objective_1_sparsity_in(casadi_int i) {
   }
 }
 
-const casadi_int* FORCESNLPsolver_objective_1_sparsity_out(casadi_int i) {
+CASADI_SYMBOL_EXPORT const casadi_int* FORCESNLPsolver_objective_1_sparsity_out(casadi_int i) {
   switch (i) {
     case 0: return casadi_s2;
     case 1: return casadi_s3;
@@ -5662,7 +5661,7 @@ const casadi_int* FORCESNLPsolver_objective_1_sparsity_out(casadi_int i) {
   }
 }
 
-int FORCESNLPsolver_objective_1_work(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, casadi_int *sz_w) {
+CASADI_SYMBOL_EXPORT int FORCESNLPsolver_objective_1_work(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, casadi_int *sz_w) {
   if (sz_arg) *sz_arg = 2;
   if (sz_res) *sz_res = 2;
   if (sz_iw) *sz_iw = 0;

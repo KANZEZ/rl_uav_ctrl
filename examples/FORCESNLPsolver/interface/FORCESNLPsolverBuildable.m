@@ -95,12 +95,26 @@ classdef FORCESNLPsolverBuildable < coder.ExternalDependency
                           'fevalstime', infos_fevalstime,...
                           'solver_id', infos_solver_id);
 
-            outputs_x1 = coder.nullcopy(zeros(17, 1));
-            outputs_x2 = coder.nullcopy(zeros(17, 1));
-            outputs_x3 = coder.nullcopy(zeros(17, 1));
-            output = struct('x1', outputs_x1,...
-                            'x2', outputs_x2,...
-                            'x3', outputs_x3);
+            outputs_x01 = coder.nullcopy(zeros(17, 1));
+            outputs_x02 = coder.nullcopy(zeros(17, 1));
+            outputs_x03 = coder.nullcopy(zeros(17, 1));
+            outputs_x04 = coder.nullcopy(zeros(17, 1));
+            outputs_x05 = coder.nullcopy(zeros(17, 1));
+            outputs_x06 = coder.nullcopy(zeros(17, 1));
+            outputs_x07 = coder.nullcopy(zeros(17, 1));
+            outputs_x08 = coder.nullcopy(zeros(17, 1));
+            outputs_x09 = coder.nullcopy(zeros(17, 1));
+            outputs_x10 = coder.nullcopy(zeros(17, 1));
+            output = struct('x01', outputs_x01,...
+                            'x02', outputs_x02,...
+                            'x03', outputs_x03,...
+                            'x04', outputs_x04,...
+                            'x05', outputs_x05,...
+                            'x06', outputs_x06,...
+                            'x07', outputs_x07,...
+                            'x08', outputs_x08,...
+                            'x09', outputs_x09,...
+                            'x10', outputs_x10);
             
             exitflag = coder.nullcopy(0);
         end
@@ -160,9 +174,16 @@ classdef FORCESNLPsolverBuildable < coder.ExternalDependency
             info.fevalstime = cast(info_c.fevalstime, 'like', info.fevalstime);
             info.solver_id = cast(info_c.solver_id, 'like', info.solver_id);
 
-            output.x1 = cast(output_c.x1, 'like', output.x1);
-            output.x2 = cast(output_c.x2, 'like', output.x2);
-            output.x3 = cast(output_c.x3, 'like', output.x3);
+            output.x01 = cast(output_c.x01, 'like', output.x01);
+            output.x02 = cast(output_c.x02, 'like', output.x02);
+            output.x03 = cast(output_c.x03, 'like', output.x03);
+            output.x04 = cast(output_c.x04, 'like', output.x04);
+            output.x05 = cast(output_c.x05, 'like', output.x05);
+            output.x06 = cast(output_c.x06, 'like', output.x06);
+            output.x07 = cast(output_c.x07, 'like', output.x07);
+            output.x08 = cast(output_c.x08, 'like', output.x08);
+            output.x09 = cast(output_c.x09, 'like', output.x09);
+            output.x10 = cast(output_c.x10, 'like', output.x10);
             
             exitflag = cast(exitflag_c, 'like', exitflag);
         end
@@ -211,12 +232,26 @@ classdef FORCESNLPsolverBuildable < coder.ExternalDependency
                           'fevalstime', infos_fevalstime,...
                           'solver_id', infos_solver_id);
                           
-            outputs_x1 = coder.nullcopy(double(zeros(17, 1)));
-            outputs_x2 = coder.nullcopy(double(zeros(17, 1)));
-            outputs_x3 = coder.nullcopy(double(zeros(17, 1)));
-            output = struct('x1', outputs_x1,...
-                            'x2', outputs_x2,...
-                            'x3', outputs_x3);
+            outputs_x01 = coder.nullcopy(double(zeros(17, 1)));
+            outputs_x02 = coder.nullcopy(double(zeros(17, 1)));
+            outputs_x03 = coder.nullcopy(double(zeros(17, 1)));
+            outputs_x04 = coder.nullcopy(double(zeros(17, 1)));
+            outputs_x05 = coder.nullcopy(double(zeros(17, 1)));
+            outputs_x06 = coder.nullcopy(double(zeros(17, 1)));
+            outputs_x07 = coder.nullcopy(double(zeros(17, 1)));
+            outputs_x08 = coder.nullcopy(double(zeros(17, 1)));
+            outputs_x09 = coder.nullcopy(double(zeros(17, 1)));
+            outputs_x10 = coder.nullcopy(double(zeros(17, 1)));
+            output = struct('x01', outputs_x01,...
+                            'x02', outputs_x02,...
+                            'x03', outputs_x03,...
+                            'x04', outputs_x04,...
+                            'x05', outputs_x05,...
+                            'x06', outputs_x06,...
+                            'x07', outputs_x07,...
+                            'x08', outputs_x08,...
+                            'x09', outputs_x09,...
+                            'x10', outputs_x10);
             exitflag = coder.nullcopy(int32(0));
         end
     end

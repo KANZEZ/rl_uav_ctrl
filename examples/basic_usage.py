@@ -57,7 +57,7 @@ world = World.from_file(os.path.abspath(os.path.join(os.path.dirname(__file__),'
 
 # An instance of the simulator can be generated as follows: 
 sim_instance = Environment(vehicle=Multirotor(quad_params, control_abstraction='cmd_motor_thrusts'),           # vehicle object, must be specified.
-                           controller=NonlinearMPC(quad_params, 3),        # controller object, must be specified.
+                           controller=NonlinearMPC(quad_params, 10),        # controller object, must be specified.
                            trajectory=HoverTraj(),         # trajectory object, must be specified.
                            wind_profile=None,               # OPTIONAL: wind profile object, if none is supplied it will choose no wind.
                            sim_rate     = 100,                        # OPTIONAL: The update frequency of the simulator in Hz. Default is 100 Hz.
@@ -78,8 +78,8 @@ Execution
 
 # Setting an initial state. This is optional, and the state representation depends on the vehicle used. 
 # Generally, vehicle objects should have an "initial_state" attribute. 
-x0 = {'x': np.array([2.5,-0.8,1.9]),
-      'v': np.zeros(3,),
+x0 = {'x': np.array([2.5, -1.5, 1.1]),
+      'v': np.array([0.0,-0.0,0.0]),
       'q': np.array([0, 0, 0, 1]), # [i,j,k,w]
       'w': np.zeros(3,),
       'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten

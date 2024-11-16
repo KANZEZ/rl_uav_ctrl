@@ -6,18 +6,25 @@ requires_callback = True
 lib = "lib/libFORCESNLPsolver.so"
 lib_static = "lib/libFORCESNLPsolver.a"
 c_header = "include/FORCESNLPsolver.h"
-nstages = 3
+nstages = 10
 
 # Parameter             | Type    | Scalar type      | Ctypes type    | Numpy type   | Shape     | Len
 params = \
 [("xinit"               , "dense" , ""               , ctypes.c_double, numpy.float64, ( 13,   1),   13),
- ("x0"                  , "dense" , ""               , ctypes.c_double, numpy.float64, ( 51,   1),   51)]
+ ("x0"                  , "dense" , ""               , ctypes.c_double, numpy.float64, (170,   1),  170)]
 
 # Output                | Type    | Ctypes type    | Numpy type   | Shape     | Len
 outputs = \
-[("x1"                  , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
- ("x2"                  , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
- ("x3"                  , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17)]
+[("x01"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
+ ("x02"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
+ ("x03"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
+ ("x04"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
+ ("x05"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
+ ("x06"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
+ ("x07"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
+ ("x08"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
+ ("x09"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
+ ("x10"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17)]
 
 # Info Struct Fields
 info = \
@@ -46,6 +53,13 @@ info = \
 # Dynamics dimensions
 #   nvar    |   neq   |   dimh    |   dimp    |   diml    |   dimu    |   dimhl   |   dimhu    
 dynamics_dims = [
+	(17, 13, 0, 0, 17, 17, 0, 0), 
+	(17, 13, 0, 0, 17, 17, 0, 0), 
+	(17, 13, 0, 0, 17, 17, 0, 0), 
+	(17, 13, 0, 0, 17, 17, 0, 0), 
+	(17, 13, 0, 0, 17, 17, 0, 0), 
+	(17, 13, 0, 0, 17, 17, 0, 0), 
+	(17, 13, 0, 0, 17, 17, 0, 0), 
 	(17, 13, 0, 0, 17, 17, 0, 0), 
 	(17, 13, 0, 0, 17, 17, 0, 0), 
 	(17, 13, 0, 0, 17, 17, 0, 0)

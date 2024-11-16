@@ -64,7 +64,7 @@ extern solver_int32_default FORCESNLPsolver_adtool2forces(FORCESNLPsolver_float 
 	
     /* temporary storage for AD tool sparse output */
     FORCESNLPsolver_callback_float this_f = (FORCESNLPsolver_callback_float) 0.0;
-    FORCESNLPsolver_float nabla_f_sparse[10];
+    FORCESNLPsolver_float nabla_f_sparse[6];
     
     
     FORCESNLPsolver_float c_sparse[13];
@@ -82,7 +82,7 @@ extern solver_int32_default FORCESNLPsolver_adtool2forces(FORCESNLPsolver_float 
     in[2] = l;
     in[3] = y;
 
-	if ((0 <= stage && stage <= 1))
+	if ((0 <= stage && stage <= 8))
 	{
 		
 		
@@ -121,7 +121,7 @@ extern solver_int32_default FORCESNLPsolver_adtool2forces(FORCESNLPsolver_float 
 			FORCESNLPsolver_sparse2fullcopy(nrow, ncol, colind, row, nabla_c_sparse, nabla_c);
 		}
 	}
-	if ((2 == stage))
+	if ((9 == stage))
 	{
 		
 		
