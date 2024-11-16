@@ -153,7 +153,6 @@ class Multirotor(object):
         """
         Integrate dynamics forward from state given constant cmd_rotor_speeds for time t_step.
         """
-
         cmd_rotor_speeds = self.get_cmd_motor_speeds(state, control)
 
         # The true motor speeds can not fall below min and max speeds.

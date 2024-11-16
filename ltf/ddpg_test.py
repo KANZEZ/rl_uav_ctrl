@@ -76,6 +76,7 @@ if __name__ == "__main__":
     model.eval_mode()
     reward_obj = CurriculumReward()
     reward_function = lambda obs, act, finish: reward_obj.reward(obs, act, finish)
+    wind = SinusoidWind(amplitudes=[8,-8,10], frequencies=[1,2,1])
 
     def make_env():
         return gym.make("Quadrotor-v0",
@@ -90,7 +91,7 @@ if __name__ == "__main__":
                         fig=fig,
                         ax=ax,
                         color='b',
-                        wind_profile=SinusoidWind(amplitudes=[8,8,8]))
+                        wind_profile=wind)
 
     envs = [make_env() for _ in range(num_quads)]
 
@@ -107,7 +108,7 @@ if __name__ == "__main__":
                          fig=fig,
                          ax=ax,
                          color='k',
-                         wind_profile=SinusoidWind(amplitudes=[8,8,8])))  # Geometric controller
+                         wind_profile=wind))  # Geometric controller
 
     # Evaluation...
     num_timesteps_idxs = [1]
