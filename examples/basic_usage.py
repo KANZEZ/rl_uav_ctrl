@@ -78,7 +78,7 @@ Execution
 
 # Setting an initial state. This is optional, and the state representation depends on the vehicle used. 
 # Generally, vehicle objects should have an "initial_state" attribute. 
-x0 = {'x': np.array([0.5,0,0]),
+x0 = {'x': np.array([2.5,-0.8,1.9]),
       'v': np.zeros(3,),
       'q': np.array([0, 0, 0, 1]), # [i,j,k,w]
       'w': np.zeros(3,),
