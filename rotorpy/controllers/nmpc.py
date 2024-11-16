@@ -27,7 +27,7 @@ class NonlinearMPC(object):
         if cmd_ctbr: the output dict should contain the keys 'cmd_thrust' and 'cmd_w'
         if cmd_ctbm: the output dict should contain the keys 'cmd_thrust' and 'cmd_moment'
     """
-    def __init__(self, quad_params, init_state):
+    def __init__(self, quad_params):
         """
         Use this constructor to save vehicle parameters, set controller gains, etc.
         Parameters:
@@ -85,7 +85,7 @@ class NonlinearMPC(object):
         self.f_to_TM = casadi.SX(self.f_to_TM.tolist())
 
         #### mpc problem ####
-        self.generate_mpc_problem(init_state)
+        self.generate_mpc_problem()
         self.x0 = np.zeros((self.model.nvar, self.model.N)) # initial guess
 
     ### have to use casadi
@@ -136,7 +136,7 @@ class NonlinearMPC(object):
         return casadi.mtimes(x.T, casadi.mtimes(self.Qf, x))
 
 
-    def generate_mpc_problem(self, init_state):
+    def generate_mpc_problem(self):
         # Model Definition
         # ----------------
         # Problem dimensions
@@ -148,8 +148,8 @@ class NonlinearMPC(object):
         self.model.npar = 0 # number of runtime parameters, the param that is changing with time, or external input of mpc, like target positions
 
         # Objective function
-        self.model.objective = lambda z: self.obj(z[:self.state_dim], z[self.state_dim:])
-        self.model.objectiveN = lambda z: self.objN(z[:self.state_dim]) # increased costs for the last stage
+        self.model.objective = lambda z: self.obj(z[self.state_dim:], z[:self.state_dim])
+        self.model.objectiveN = lambda z: self.objN(z[self.state_dim:]) # increased costs for the last stage
         # The function must be able to handle symbolic evaluation,
         # by passing in CasADi symbols. This means certain numpy funcions are not
         # available.
@@ -157,7 +157,7 @@ class NonlinearMPC(object):
         # We use an explicit RK4 integrator here to discretize continuous dynamics
         integrator_stepsize = 0.1
         self.model.eq = lambda z: forcespro.nlp.integrate(self.quadrotor_simple_dynamics,
-                                                     z[:self.state_dim], z[self.state_dim:],
+                                                     z[self.state_dim:], z[:self.state_dim],
                                                      integrator=forcespro.nlp.integrators.RK4,
                                                      stepsize=integrator_stepsize)
         # Indices on LHS of dynamical constraint - for efficiency reasons, make
@@ -269,7 +269,6 @@ class NonlinearMPC(object):
         for i in range(self.model.N):
             temp[:, i] = output['x{0:02d}'.format(i+1)]
         pred_u = temp[0:4, :]
-        #pred_x = temp[4:, :]
 
         self.x0 = np.copy(temp)
 
