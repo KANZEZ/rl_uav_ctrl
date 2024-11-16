@@ -12,6 +12,7 @@ from rotorpy.vehicles.crazyflie_params import quad_params
 
 # You will also need a controller (currently there is only one) that works for your vehicle. 
 from rotorpy.controllers.quadrotor_control import SE3Control
+from rotorpy.controllers.nmpc import NonlinearMPC
 
 # And a trajectory generator
 from rotorpy.trajectories.hover_traj import HoverTraj
@@ -56,9 +57,9 @@ world = World.from_file(os.path.abspath(os.path.join(os.path.dirname(__file__),'
 
 # An instance of the simulator can be generated as follows: 
 sim_instance = Environment(vehicle=Multirotor(quad_params),           # vehicle object, must be specified. 
-                           controller=SE3Control(quad_params),        # controller object, must be specified.
-                           trajectory=TwoDLissajous(A=2, B=3, a=2, b=1, delta=0.5, height=1),         # trajectory object, must be specified.
-                           wind_profile=SinusoidWind(),               # OPTIONAL: wind profile object, if none is supplied it will choose no wind. 
+                           controller=NonlinearMPC(quad_params, 3),        # controller object, must be specified.
+                           trajectory=HoverTraj(),         # trajectory object, must be specified.
+                           wind_profile=None,               # OPTIONAL: wind profile object, if none is supplied it will choose no wind.
                            sim_rate     = 100,                        # OPTIONAL: The update frequency of the simulator in Hz. Default is 100 Hz.
                            imu          = None,                       # OPTIONAL: imu sensor object, if none is supplied it will choose a default IMU sensor.
                            mocap        = None,                       # OPTIONAL: mocap sensor object, if none is supplied it will choose a default mocap.  
@@ -77,7 +78,7 @@ Execution
 
 # Setting an initial state. This is optional, and the state representation depends on the vehicle used. 
 # Generally, vehicle objects should have an "initial_state" attribute. 
-x0 = {'x': np.array([0,0,0]),
+x0 = {'x': np.array([0.5,0,0]),
       'v': np.zeros(3,),
       'q': np.array([0, 0, 0, 1]), # [i,j,k,w]
       'w': np.zeros(3,),

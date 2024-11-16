@@ -27,13 +27,13 @@ class NonlinearMPC(object):
         if cmd_ctbr: the output dict should contain the keys 'cmd_thrust' and 'cmd_w'
         if cmd_ctbm: the output dict should contain the keys 'cmd_thrust' and 'cmd_moment'
     """
-    def __init__(self, quad_params):
+    def __init__(self, quad_params, horizon):
         """
         Use this constructor to save vehicle parameters, set controller gains, etc.
         Parameters:
             vehicle_params, dict with keys specified in a python file under /rotorpy/vehicles/
         """
-        self.horizon = int(3)
+        self.horizon = int(horizon)
         self.state_dim = int(13) # pos(3), vel(3), quat(4), ang_vel(3)
         self.control_dim = int(4) # rotor thrusts
 
@@ -111,12 +111,13 @@ class NonlinearMPC(object):
                 w, angular velocity, rad/s
         u: control input [4 thrusts]
         """
-        v, w, q = s['v'], s['w'], s['q']
+        v, q, w = s[3:6], s[6:10], s[10:13]
         R = self.casadi_quat2R(q)
         xd = v
-        vd = casadi.vertcat([0,0,-self.g]) + casadi.mtimes(R, casadi.vertcat(0,0,u[0]/self.mass))
+        vd = casadi.vertcat([0,0,-self.g]) + casadi.mtimes(R, casadi.vertcat(0,0,(u[0] + u[1] + u[2] + u[3])/self.mass))
         qd = self.casadi_quat_dot(q, w)
-        wd = casadi.mtimes(self.inv_inertia, (casadi.mtimes(self.f_to_TM, u) - casadi.cross(w, casadi.mtimes(self.inertia , w))))
+        wb = casadi.mtimes(R.T, w)
+        wd = casadi.mtimes(self.inv_inertia, (casadi.mtimes(self.f_to_TM, u) - casadi.cross(wb, casadi.mtimes(self.inertia , wb))))
         wd = casadi.mtimes(R, wd)
         return casadi.vertcat(xd, vd, qd, wd)
 
@@ -125,15 +126,14 @@ class NonlinearMPC(object):
         """
         Objective function for the nonlinear MPC problem
         """
-        return (casadi.mtimes(x.T, casadi.mtimes(self.Q, x)) +
-                casadi.mtimes(u.T, casadi.mtimes(self.R, u)))
-
+        #return casadi.mtimes(x.T, casadi.mtimes(self.Q, x)) + casadi.mtimes(u.T, casadi.mtimes(self.R, u))
+        return 5 * casadi.sumsqr(x[:3]) + 2 * casadi.sumsqr(x[3:6]) + 2 * casadi.sumsqr(u)
 
     def objN(self, x):
         """
         Objective function for the nonlinear MPC problem at the final time
         """
-        return casadi.mtimes(x.T, casadi.mtimes(self.Qf, x))
+        return 50 * casadi.sumsqr(x[:3]) + 20 * casadi.sumsqr(x[3:6])
 
 
     def generate_mpc_problem(self):
@@ -148,8 +148,8 @@ class NonlinearMPC(object):
         self.model.npar = 0 # number of runtime parameters, the param that is changing with time, or external input of mpc, like target positions
 
         # Objective function
-        self.model.objective = lambda z: self.obj(z[self.state_dim:], z[:self.state_dim])
-        self.model.objectiveN = lambda z: self.objN(z[self.state_dim:]) # increased costs for the last stage
+        self.model.objective = lambda z: self.obj(z[self.control_dim:], z[:self.control_dim])
+        self.model.objectiveN = lambda z: self.objN(z[self.control_dim:]) # increased costs for the last stage
         # The function must be able to handle symbolic evaluation,
         # by passing in CasADi symbols. This means certain numpy funcions are not
         # available.
@@ -157,7 +157,7 @@ class NonlinearMPC(object):
         # We use an explicit RK4 integrator here to discretize continuous dynamics
         integrator_stepsize = 0.1
         self.model.eq = lambda z: forcespro.nlp.integrate(self.quadrotor_simple_dynamics,
-                                                     z[self.state_dim:], z[:self.state_dim],
+                                                     z[self.control_dim:], z[:self.control_dim],
                                                      integrator=forcespro.nlp.integrators.RK4,
                                                      stepsize=integrator_stepsize)
         # Indices on LHS of dynamical constraint - for efficiency reasons, make
@@ -169,8 +169,8 @@ class NonlinearMPC(object):
         #z = [f1, f2, f3, f4, x, y, z, vx, vy, vz, q0, q1, q2, q3, wx, wy, wz]
         #                     inputs                 |  states
         #                     F          phi            x    y     v    theta         delta
-        self.model.lb = np.array([-5, -5, -5, -5, -6, -6, -6, -3, -3, -3, 0, 0, 0, 0, -1, -1, -1])
-        self.model.ub = np.array([5, 5, 5, 5, 6, 6, 6, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1])
+        self.model.lb = np.array([-5, -5, -5, -5, -6, -6, -6, -3, -3, -3, -1, -1, -1, -1, -1, -1, -1])
+        self.model.ub = np.array([5,   5,  5,  5,  6,  6,  6,  3,  3,  3,  1,  1,  1,  1,  1,  1,  1])
 
         # Initial condition on vehicle states x
         self.model.xinitidx = range(4,4+13) # use this to specify on which variables initial conditions, # mask
@@ -183,24 +183,26 @@ class NonlinearMPC(object):
 
         # Set solver options
         codeoptions = forcespro.CodeOptions('FORCESNLPsolver')
-        codeoptions.maxit = 200     # Maximum number of iterations
-        codeoptions.printlevel = 0  # Use printlevel = 2 to print progress (but
+        codeoptions.maxit = 500     # Maximum number of iterations
+        codeoptions.printlevel = 1  # Use printlevel = 2 to print progress (but
         #                             not for timings)
         codeoptions.optlevel = 0    # 0 no optimization, 1 optimize for size,
         #                             2 optimize for speed, 3 optimize for size & speed
+        codeoptions.overwrite = 1
         codeoptions.cleanup = False
         codeoptions.timing = 1
-        codeoptions.nlp.hessian_approximation = 'bfgs'
-        codeoptions.solvemethod = 'SQP_NLP' # choose the solver method Sequential
-        #                              Quadratic Programming
-        codeoptions.sqp_nlp.maxqps = 1      # maximum number of quadratic problems to be solved
-        codeoptions.sqp_nlp.reg_hessian = 5e-9 # increase this if exitflag=-8
-        # change this to your server or leave uncommented for using the
-        # standard embotech server at https://forces.embotech.com
-        # codeoptions.server = 'https://forces.embotech.com'
+        # codeoptions.nlp.hessian_approximation = 'bfgs'
+        # # codeoptions.solvemethod = 'SQP_NLP' # choose the solver method Sequential
+        # # #                              Quadratic Programming
+        # # codeoptions.sqp_nlp.maxqps = 1      # maximum number of quadratic problems to be solved
+        # # codeoptions.sqp_nlp.reg_hessian = 5e-9 # increase this if exitflag=-8
 
-        # Creates code for symbolic model formulation given above, then contacts
-        # server to generate new solver
+        codeoptions.noVariableElimination = 1
+        codeoptions.nlp.TolStat = 1E-3
+        codeoptions.nlp.TolEq = 1E-3
+        codeoptions.nlp.TolIneq = 1E-3
+        codeoptions.nlp.TolComp = 1E-3
+
         self.solver = self.model.generate_solver(options=codeoptions)
 
         return self.model, self.solver
@@ -250,24 +252,33 @@ class NonlinearMPC(object):
         cmd_v = np.zeros((3,))
 
         ###### solve the mpc problem in this time step ######
-        if t == 0:
-            x0i = np.zeros((self.model.nvar,1))
-            x0i[4:] = np.copy(np.array([state['x'], state['v'], state['q'], state['w']]).reshape(-1,))
-            x0 = np.transpose(np.tile(x0i, (1, self.model.N)))
-        else:
-            x0 = np.copy(self.x0)
+        sx = np.ravel(state['x'])
+        sv = np.ravel(state['v'])
+        sq = np.ravel(state['q'])
+        sw = np.ravel(state['w'])
+        state_vec = np.concatenate([sx, sv, sq, sw]).reshape(-1, 1)
+        #print("current state: ", state_vec)
 
-        xinit = np.transpose(np.array([state['x'], state['v'], state['q'], state['w']]).reshape(-1,))
+        # if t == 0:
+        x0i = np.zeros((self.model.nvar,1))
+            # x0i[4:] = np.copy(state_vec)
+        x0 = np.transpose(np.tile(x0i, (1, self.model.N)))
+        # else:
+            # x0 = np.copy(self.x0)
+
+        xinit = np.transpose(state_vec)
         problem = {"x0": x0,
                    "xinit": xinit}
+
         output, exitflag, info = self.solver.solve(problem)
-        assert exitflag == 1, "bad exitflag"
+        print(exitflag)
+        #assert exitflag == 1, "bad exitflag"
         sys.stderr.write("FORCESPRO took {} iterations and {} seconds to solve the problem.\n" \
                          .format(info.it, info.solvetime))
 
         temp = np.zeros((np.max(self.model.nvar), self.model.N))
         for i in range(self.model.N):
-            temp[:, i] = output['x{0:02d}'.format(i+1)]
+            temp[:, i] = output[f'x{i+1}']
         pred_u = temp[0:4, :]
 
         self.x0 = np.copy(temp)
@@ -306,11 +317,21 @@ class NonlinearMPC(object):
         """
         # Adapted from "Quaternions And Dynamics" by Basile Graf.
         (q0, q1, q2, q3) = (quat[0], quat[1], quat[2], quat[3])
-        G = casadi.SX([
-            [ q3,  q2, -q1, -q0],
-            [-q2,  q3,  q0, -q1],
-            [ q1, -q0,  q3, -q2]
-        ])
+        G = casadi.SX(3, 4)  # Create a 3x4 SX matrix
+        G[0, 0] = q3
+        G[0, 1] = q2
+        G[0, 2] = -q1
+        G[0, 3] = -q0
+
+        G[1, 0] = -q2
+        G[1, 1] = q3
+        G[1, 2] = q0
+        G[1, 3] = -q1
+
+        G[2, 0] = q1
+        G[2, 1] = -q0
+        G[2, 2] = q3
+        G[2, 3] = -q2
         quat_dot = 0.5 * casadi.mtimes(G.T, omega)
         # Augment to maintain unit quaternion.
         quat_err = casadi.sumsqr(quat**2) - 1
