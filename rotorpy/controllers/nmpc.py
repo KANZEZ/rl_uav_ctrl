@@ -88,7 +88,7 @@ class NonlinearMPC(object):
         self.generate_mpc_problem()
         self.x0 = np.zeros((self.model.nvar, self.model.N)) # initial guess
 
-    ### have to use casadi
+    ################## need to check the dynamics ##################
     def quadrotor_simple_dynamics(self, s, u):
         """
         sdot = f(s,u), continuous system dynamics, we see the dynamics in "multirotor.py"
@@ -155,7 +155,7 @@ class NonlinearMPC(object):
         # available.
 
         # We use an explicit RK4 integrator here to discretize continuous dynamics
-        integrator_stepsize = 0.1
+        integrator_stepsize = 0.01
         self.model.eq = lambda z: forcespro.nlp.integrate(self.quadrotor_simple_dynamics,
                                                      z[self.control_dim:], z[:self.control_dim],
                                                      integrator=forcespro.nlp.integrators.RK4,
@@ -284,6 +284,7 @@ class NonlinearMPC(object):
         self.x0 = np.copy(temp)
 
         cmd_motor_thrusts = pred_u[:,0]
+        print(cmd_motor_thrusts)
 
         control_input = {'cmd_motor_speeds' :cmd_motor_speeds,
                          'cmd_motor_thrusts':cmd_motor_thrusts,

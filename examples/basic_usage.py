@@ -56,7 +56,7 @@ world = World.from_file(os.path.abspath(os.path.join(os.path.dirname(__file__),'
 # "world" is an optional argument. If you don't load a world it'll just provide an empty playground! 
 
 # An instance of the simulator can be generated as follows: 
-sim_instance = Environment(vehicle=Multirotor(quad_params),           # vehicle object, must be specified. 
+sim_instance = Environment(vehicle=Multirotor(quad_params, control_abstraction='cmd_motor_thrusts'),           # vehicle object, must be specified.
                            controller=NonlinearMPC(quad_params, 3),        # controller object, must be specified.
                            trajectory=HoverTraj(),         # trajectory object, must be specified.
                            wind_profile=None,               # OPTIONAL: wind profile object, if none is supplied it will choose no wind.
