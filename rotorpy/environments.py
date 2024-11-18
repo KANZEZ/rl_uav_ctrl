@@ -40,7 +40,7 @@ class Environment():
 
         if world is None:
             # If no world is specified, assume that it means that the intended world is free space.
-            wbound = 3 
+            wbound = 6
             self.world = World.empty((-wbound, wbound, -wbound, 
                                        wbound, -wbound, wbound))
         else:
