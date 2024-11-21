@@ -24,7 +24,7 @@ class CurriculumReward(object):
         self.C_ANGVEL_RATE = 1.2
 
         # survival reward
-        self.SURVIVE_REWARD = 1.5
+        self.SURVIVE_REWARD = 2
 
         # goal reward
         self.GOAL_REWARD = 0
@@ -50,17 +50,17 @@ class CurriculumReward(object):
 
         #Compute the quaternion error, dont use it for now
         quat_reward = -self.C_ORIENT_INIT*(1 - observation[9]**2) #np.linalg.norm(observation[6:10])
-        quat_reward += -self.C_ORIENT_INIT*np.linalg.norm(observation[6:9])
+        #quat_reward += -self.C_ORIENT_INIT*np.linalg.norm(observation[6:9])
         # Compute the angular rate reward, note that we set it to zero
         ang_rate_reward = -self.C_ANGVEL_INIT*np.linalg.norm(observation[10:13])
 
         # Compute the action reward
         action_reward = -self.C_ACTION_INIT*np.linalg.norm(action - self.rotor_speed_bs)
 
-        if (np.linalg.norm(observation[0:3]) < 0.1 and
+        if (np.linalg.norm(observation[0:3]) < 0.05 and
                 np.linalg.norm(observation[3:6]) < 0.05 and
                 np.linalg.norm(observation[10:13]) < 0.05):
-            self.GOAL_REWARD = 10
+            self.GOAL_REWARD = 500
         else:
             self.GOAL_REWARD = 0
 

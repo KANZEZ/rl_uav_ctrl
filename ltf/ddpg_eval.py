@@ -12,7 +12,7 @@ reward_function = lambda obs, act, finish: reward_obj.reward(obs, act, finish)
 
 # Runs policy for X episodes and returns average reward
 # A fixed seed is used for the eval environment
-def eval_policy(policy, env_name, seed, pos_bound, vel_bound, eval_episodes=30, render='None'):
+def eval_policy(policy, env_name, seed, pos_bound, vel_bound, eval_episodes=10, render='None'):
     eval_env = gym.make(env_name,
                         control_mode ='cmd_motor_speeds',
                         reward_fn = reward_function,

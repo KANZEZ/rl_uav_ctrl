@@ -78,12 +78,13 @@ Execution
 
 # Setting an initial state. This is optional, and the state representation depends on the vehicle used. 
 # Generally, vehicle objects should have an "initial_state" attribute. 
-x0 = {'x': np.array([3.5, 1.57, 3.48]),
-      'v': np.array([-3.67,2.38,1.05]),
-      'q': np.array([0, 0, 0, 1]), # [i,j,k,w]
-      'w': np.zeros(3,),
+x0 = {'x': np.array([5.5, -5.5, -5.48]),
+      'v': np.array([0.0,0.00,0.00]),
+      'q': np.array([0.0, 0.0, 0.0, 1]), # [i,j,k,w]
+      'w': np.array([0.0, 0.0, 0.0]),
       'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten
       'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])}
+
 sim_instance.vehicle.initial_state = x0
 
 # Executing the simulator as specified above is easy using the "run" method: 

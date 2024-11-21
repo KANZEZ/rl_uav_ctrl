@@ -13,52 +13,6 @@ from rotorpy.wind.default_winds import NoWind, ConstantWind, SinusoidWind, Ladde
 from rotorpy.trajectories.lissajous_traj import TwoDLissajous
 baseline_controller = SE3Control(quad_params)
 
-
-########## ##################### fast evaluation test here ############################
-
-# if __name__ == "__main__":
-#     # Set the seed for reproducibility
-#     pos_bound, vel_bound = 6.5, 3.0
-#     model = DDPG(13, 4)
-#     path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/02-46-05/"
-#     # Load the policy
-#     model.load(path)
-#     model.eval_mode()
-#     reward_obj = CurriculumReward()
-#     reward_function = lambda obs, act, finish: reward_obj.reward(obs, act, finish)
-#
-#     # Evaluate the policy
-#     eval_env = gym.make('Quadrotor-v0',
-#                         control_mode ='cmd_motor_speeds',
-#                         reward_fn = reward_function,
-#                         quad_params = quad_params,
-#                         max_time = 5,
-#                         world = None,
-#                         sim_rate = 30,
-#                         render_mode='3D')
-#     ac_obj = ActionContainer(4)
-#     avg_reward = 0.
-#     eval_episodes = 1
-#     for _ in range(eval_episodes):
-#         obs, done = eval_env.reset(initial_state='random', options={'pos_bound': pos_bound,
-#                                                                                   'vel_bound': vel_bound})[0], False
-#         print("initial state: ", obs)
-#         ac_obj.clear()
-#         while 1:
-#             cur_ah = ac_obj.get()
-#             action = model.select_action(obs, cur_ah)
-#             ac_obj.add(action)
-#             obs, reward, done, _, _ = eval_env.step(action)
-#             avg_reward += reward
-#
-#     avg_reward /= eval_episodes
-#     print("---------------------------------------")
-#     print(f"Evaluation over {eval_episodes} episodes: {avg_reward:.3f}")
-#     print("---------------------------------------")
-
-
-
-
 ##################### decent evaluation comparison here ############################
 
 
@@ -71,7 +25,7 @@ if __name__ == "__main__":
     num_quads = 1
     pos_bound, vel_bound = 0.5, .0
     model = DDPG(13, 4)
-    path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/02-46-05/"
+    path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/17-49-01/"
     # Load the policy
     model.load(path)
     model.eval_mode()
@@ -83,12 +37,15 @@ if __name__ == "__main__":
     wind = None
 
     # trajectory it follows
-    traj = TwoDLissajous(A=4, B=3, a=1, b=2, delta=0, height=1)
+    traj = TwoDLissajous(A=2.0, B=1.0, a=1.0, b=2.0, delta=0, height=1)
     #plot the traj
     t_traj = np.linspace(0, 50, 5000)
     x_traj = [traj.update(t)['x'] for t in t_traj]
     x_traj = np.array(x_traj)
     ax.plot(x_traj[:,0], x_traj[:,1], x_traj[:,2], 'r-', linewidth=0.7)
+
+    prev_t = 0
+    update_dur = 0.00000001
 
     def make_env():
         return gym.make("Quadrotor-v0",
@@ -150,6 +107,7 @@ if __name__ == "__main__":
         ## get the new target:
         tar = traj.update(0)
 
+
         # Arrays for plotting position vs time.
         T = [0]
         x = [[obs[0] for obs in observations]]
@@ -179,6 +137,8 @@ if __name__ == "__main__":
 
                     # For the last environment, append the current timestep.
                     T.append(env.unwrapped.t)
+                    #if env.unwrapped.t - prev_t > update_dur:
+                    #prev_t = env.unwrapped.t
                     tar = traj.update(env.unwrapped.t)
 
                 else: # For all other environments, get the action from the RL control policy.
@@ -186,7 +146,7 @@ if __name__ == "__main__":
                     cur_ah = act_hss[i].get()
                     offset_obs = np.copy(observations[i])
                     offset_obs[:3] -= tar['x']
-                    offset_obs[3:6] -= tar['x_dot']
+                    #offset_obs[3:6] -= tar['x_dot'] # comment this will increase the performance, but theorically not right
                     action = model.select_action(offset_obs, cur_ah)
                     act_hss[i].add(action)
 

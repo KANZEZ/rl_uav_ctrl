@@ -12,52 +12,6 @@ from rotorpy.controllers.quadrotor_control import SE3Control
 from rotorpy.wind.default_winds import NoWind, ConstantWind, SinusoidWind, LadderWind
 baseline_controller = SE3Control(quad_params)
 
-
-########## ##################### fast evaluation test here ############################
-
-# if __name__ == "__main__":
-#     # Set the seed for reproducibility
-#     pos_bound, vel_bound = 6.5, 3.0
-#     model = DDPG(13, 4)
-#     path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/02-46-05/"
-#     # Load the policy
-#     model.load(path)
-#     model.eval_mode()
-#     reward_obj = CurriculumReward()
-#     reward_function = lambda obs, act, finish: reward_obj.reward(obs, act, finish)
-#
-#     # Evaluate the policy
-#     eval_env = gym.make('Quadrotor-v0',
-#                         control_mode ='cmd_motor_speeds',
-#                         reward_fn = reward_function,
-#                         quad_params = quad_params,
-#                         max_time = 5,
-#                         world = None,
-#                         sim_rate = 30,
-#                         render_mode='3D')
-#     ac_obj = ActionContainer(4)
-#     avg_reward = 0.
-#     eval_episodes = 1
-#     for _ in range(eval_episodes):
-#         obs, done = eval_env.reset(initial_state='random', options={'pos_bound': pos_bound,
-#                                                                                   'vel_bound': vel_bound})[0], False
-#         print("initial state: ", obs)
-#         ac_obj.clear()
-#         while 1:
-#             cur_ah = ac_obj.get()
-#             action = model.select_action(obs, cur_ah)
-#             ac_obj.add(action)
-#             obs, reward, done, _, _ = eval_env.step(action)
-#             avg_reward += reward
-#
-#     avg_reward /= eval_episodes
-#     print("---------------------------------------")
-#     print(f"Evaluation over {eval_episodes} episodes: {avg_reward:.3f}")
-#     print("---------------------------------------")
-
-
-
-
  ##################### decent evaluation comparison here ############################
 
 
@@ -68,17 +22,17 @@ if __name__ == "__main__":
 
     # Make the environments for the RL agents.
     num_quads = 1
-    pos_bound, vel_bound = 6.5, 5.0
+    pos_bound, vel_bound = 0.3, 0.0
     model = DDPG(13, 4)
-    path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/02-46-05/"
+    path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/17-49-01/"
     # Load the policy
     model.load(path)
     model.eval_mode()
     reward_obj = CurriculumReward()
     reward_function = lambda obs, act, finish: reward_obj.reward(obs, act, finish)
-    #wind = SinusoidWind(amplitudes=[4,-3,0.3], frequencies=[1,2,2])
-    wind = ConstantWind(-1, -1, -1)
-    #wind = None
+    #wind = SinusoidWind(amplitudes=[4,-3,1.3], frequencies=[1,2,2])
+    #wind = ConstantWind(-1, -1, -1)
+    wind = None
 
     def make_env():
         return gym.make("Quadrotor-v0",
@@ -118,12 +72,19 @@ if __name__ == "__main__":
 
         print(f"[ppo_hover_eval.py]: Starting epoch {k+1} out of {len(num_timesteps_idxs)}.")
 
-        initial_state = {'x': np.array([4.5, -4.57, -3.48]),
-                              'v': np.array([3.67,-2.38,-2.05]),
-                              'q': np.array([0.2, 0.5, 0.66, 0.92]), # [i,j,k,w]
-                              'w': np.array([0.5, 0.38, 1.0]),
-                              'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten
-                              'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])}
+        # initial_state = {'x': np.array([-3.5, -3.5, -3.48]),
+        #                       'v': np.array([-2.67,-2.38,-1.05]),
+        #                       'q': np.array([0.4, 0.5, 0.66, 0.92]), # [i,j,k,w]
+        #                       'w': np.array([0.5, 0.38, 1.0]),
+        #                       'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten
+        #                       'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])}
+        initial_state = {'x': np.array([5.5, -5.5, -5.48]),
+              'v': np.array([0.0,0.00,0.00]),
+              'q': np.array([0.0, 0.0, 0.0, 1]), # [i,j,k,w]
+              'w': np.array([0.0, 0.0, 0.0]),
+              'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten
+              'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])}
+
 
         # Collect observations for each environment.
         observations = [env.reset(initial_state=initial_state, options={'pos_bound': pos_bound,

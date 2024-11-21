@@ -41,7 +41,7 @@ max_action = float(env.action_space.high[0])
 ######### model setting ###########
 pos_dim, rot_dim, vel_dim, w_dim, action_dim = 3, 4, 3, 3, 4
 obs_dim = pos_dim + vel_dim + rot_dim + w_dim # 13
-pos_bound, vel_bound = 5.5, 2.0
+pos_bound, vel_bound = 6.0, 2.0
 
 model = DDPG(obs_dim, action_dim)
 ac_obj = ActionContainer(action_dim)
@@ -59,7 +59,7 @@ eval_freq = 10000
 actor_start_timesteps = 30000
 critic_start_timesteps = 15000
 actor_training_interval = 20
-critic_training_interval = 2
+critic_training_interval = 3
 
 #### exploration noise ####
 expl_noise_decay_start = 250000
@@ -136,8 +136,8 @@ for t in range(int(max_timesteps)):
         model.replay_buffer.reward_recalculation(reward_obj)
 
     if (t + 1) % eval_freq == 0:
-        #model.eval_mode()
-        #eval_policy(model, "Quadrotor-v0", seed, pos_bound, vel_bound)
+        model.eval_mode()
+        eval_policy(model, "Quadrotor-v0", seed, pos_bound, vel_bound)
         if save_model:
             model.save(save_model_path + "/")
         model.train_mode()

@@ -60,13 +60,13 @@ Model {
       }
     }
   }
-  Created		  "11/16/2024 9:14:46 AM"
+  Created		  "11/21/2024 6:47:41 PM"
   Creator		  "embotech AG"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "embotech AG"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "11/16/2024 9:14:46 AM"
+  LastModifiedDate	  "11/21/2024 6:47:41 PM"
   RTWModifiedTimeStamp	  315310195
   ModelVersionFormat	  "1.%<AutoIncrement:2>"
   ConfigurationManager	  "None"

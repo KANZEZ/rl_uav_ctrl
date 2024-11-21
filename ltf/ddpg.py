@@ -1,19 +1,37 @@
 """
 todo:
-1. Implement the DDPG algorithm in rotorpy/learning/ddpg.py.
-2. add the detail/tricks mentioned in the paper
+1. Implement the DDPG algorithm in rotorpy/learning/ddpg.py, train a hover policy.
+
+2. add the detail/tricks mentioned in the paper(learning to fly ...)
 2.1 actor/critic training interval (done)
 2.2 noise decay (done)
 2.3 reward shaping: cirriculum learning and (reward recalculation) (done)
 2.4 action history (done)
 2.5 Guidance (done)
-2.6 multi-processing
+2.6 add path tracking task(done)
+2.6 multi-processing (if time allowed)
 
-3. train the model in the wind env
+3. (since path tracking is not good)transfer learning: using the trained policy for hover to
+    keep training a path tracking policy
+3.0 make sure to save a copy before training the trained hover policy
+3.1 add random trajectory generation functions(line traj, square traj, circle traj, figure-8 traj, and more simple traj for training)
+3.2 redefine the reward function for path tracking, maybe need to transform from flathness space to state space in order to get the quaternion, body rate...
+3.3 redefine the observation in the env, add desire traj target, maybe need to add the future traj as observation
+3.4 still training using TD3
+3.5 see if the tracking performance can outperform PID
 
-4. implement linear MPC
+4. implement nonlinear/linear MPC using FORCESPRO
+4.1 implement the nonlinear MPC for hovering(using the nonlinear quadrotor dynamics) (done)
+4.2 implement the linear MPC for hovering(using the linearized simple quadrotor dynamics)
+4.3 add path tracking task
+4.4 adjust Q, R, horizon length parameters
 
-5. compare the performance with baseline RL\MPC\PID in the wind env
+5. compare the performance(hover/path tracking) with baseline RL\openai-basedline(PPO)\MPC\PID
+5.1 compare the hover performance in/without wind env
+5.2 compare the path tracking performance in/without wind env
+5.3 report the reward/episode length curve for RL methods
+
+6. report(MEAM517,ESE546), video, and poster(MEAM517)
 """
 
 import copy
@@ -93,7 +111,7 @@ class DDPG(object):
         self.discount = discount
         self.tau = tau
         self.min_noise = 0.01
-        self.noise_std = 0.4
+        self.noise_std = 0.5
         self.decay_rate = 0.9
         self.act_tar_noise = 0.5
         self.clip = 0.5
