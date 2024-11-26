@@ -78,7 +78,7 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetInputPortRequiredContiguous(S, 0, 1); /*direct input signal access*/
 	
 	/* Input Port 1 */
-    ssSetInputPortMatrixDimensions(S,  1, 170, 1);
+    ssSetInputPortMatrixDimensions(S,  1, 187, 1);
     ssSetInputPortDataType(S, 1, SS_DOUBLE);
     ssSetInputPortComplexSignal(S, 1, COMPLEX_NO); /* no complex signals suppported */
     ssSetInputPortDirectFeedThrough(S, 1, 1); /* Feedthrough enabled */
@@ -86,8 +86,8 @@ static void mdlInitializeSizes(SimStruct *S)
  
 
 
-    /* initialize output ports - there are 10 in total */
-    if (!ssSetNumOutputPorts(S, 10)) return;    
+    /* initialize output ports - there are 11 in total */
+    if (!ssSetNumOutputPorts(S, 11)) return;    
     	
 	/* Output Port 0 */
     ssSetOutputPortMatrixDimensions(S,  0, 17, 1);
@@ -138,6 +138,11 @@ static void mdlInitializeSizes(SimStruct *S)
     ssSetOutputPortMatrixDimensions(S,  9, 17, 1);
     ssSetOutputPortDataType(S, 9, SS_DOUBLE);
     ssSetOutputPortComplexSignal(S, 9, COMPLEX_NO); /* no complex signals suppported */
+	
+	/* Output Port 10 */
+    ssSetOutputPortMatrixDimensions(S,  10, 17, 1);
+    ssSetOutputPortDataType(S, 10, SS_DOUBLE);
+    ssSetOutputPortComplexSignal(S, 10, COMPLEX_NO); /* no complex signals suppported */
 
 
     /* set sampling time */
@@ -236,6 +241,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 	real_T *x08 = (real_T*) ssGetOutputPortSignal(S,7);
 	real_T *x09 = (real_T*) ssGetOutputPortSignal(S,8);
 	real_T *x10 = (real_T*) ssGetOutputPortSignal(S,9);
+	real_T *x11 = (real_T*) ssGetOutputPortSignal(S,10);
 	
 
     /* Solver data
@@ -252,7 +258,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 		params.xinit[i] = (double) xinit[i];
 	}
 
-	for(i = 0; i < 170; i++)
+	for(i = 0; i < 187; i++)
 	{
 		params.x0[i] = (double) x0[i];
 	}
@@ -336,6 +342,11 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 	for(i = 0; i < 17; i++)
 	{
 		x10[i] = (real_T) output.x10[i];
+	}
+
+	for(i = 0; i < 17; i++)
+	{
+		x11[i] = (real_T) output.x11[i];
 	}
 
 	

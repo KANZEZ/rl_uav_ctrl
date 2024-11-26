@@ -2,5 +2,18 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/acados_solver/acados" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/acados_solver/acados/examples/acados_python/tests/test_data" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/acados_solver/acados/external/blasfeo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/acados_solver/acados/external/catch" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/acados_solver/acados/external/daqp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/acados_solver/acados/external/hpipm" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/acados_solver/acados/external/hpmpc" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/acados_solver/acados/external/jsonlab" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/acados_solver/acados/external/osqp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/acados_solver/acados/external/osqp/lin_sys/direct/qdldl/qdldl_sources" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/acados_solver/acados/external/qpdunes" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/acados_solver/acados/external/qpoases" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/acados_solver/acados/interfaces/acados_template/tera_renderer" vcs="Git" />
   </component>
 </project>

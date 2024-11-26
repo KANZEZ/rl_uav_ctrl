@@ -6,12 +6,12 @@ requires_callback = True
 lib = "lib/libFORCESNLPsolver.so"
 lib_static = "lib/libFORCESNLPsolver.a"
 c_header = "include/FORCESNLPsolver.h"
-nstages = 10
+nstages = 11
 
 # Parameter             | Type    | Scalar type      | Ctypes type    | Numpy type   | Shape     | Len
 params = \
 [("xinit"               , "dense" , ""               , ctypes.c_double, numpy.float64, ( 13,   1),   13),
- ("x0"                  , "dense" , ""               , ctypes.c_double, numpy.float64, (170,   1),  170)]
+ ("x0"                  , "dense" , ""               , ctypes.c_double, numpy.float64, (187,   1),  187)]
 
 # Output                | Type    | Ctypes type    | Numpy type   | Shape     | Len
 outputs = \
@@ -24,7 +24,8 @@ outputs = \
  ("x07"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
  ("x08"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
  ("x09"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
- ("x10"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17)]
+ ("x10"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17),
+ ("x11"                 , ""               , ctypes.c_double, numpy.float64,     ( 17,),   17)]
 
 # Info Struct Fields
 info = \
@@ -53,6 +54,7 @@ info = \
 # Dynamics dimensions
 #   nvar    |   neq   |   dimh    |   dimp    |   diml    |   dimu    |   dimhl   |   dimhu    
 dynamics_dims = [
+	(17, 13, 0, 0, 17, 17, 0, 0), 
 	(17, 13, 0, 0, 17, 17, 0, 0), 
 	(17, 13, 0, 0, 17, 17, 0, 0), 
 	(17, 13, 0, 0, 17, 17, 0, 0), 

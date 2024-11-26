@@ -13,6 +13,8 @@ from rotorpy.vehicles.crazyflie_params import quad_params
 # You will also need a controller (currently there is only one) that works for your vehicle. 
 from rotorpy.controllers.quadrotor_control import SE3Control
 from rotorpy.controllers.nmpc import NonlinearMPC
+from rotorpy.controllers.lmpc import LinearMPC
+from rotorpy.controllers.nmpc2 import NonlinearMPC2
 
 # And a trajectory generator
 from rotorpy.trajectories.hover_traj import HoverTraj
@@ -20,6 +22,12 @@ from rotorpy.trajectories.circular_traj import CircularTraj, ThreeDCircularTraj
 from rotorpy.trajectories.lissajous_traj import TwoDLissajous
 from rotorpy.trajectories.speed_traj import ConstantSpeed
 from rotorpy.trajectories.minsnap import MinSnap
+from rotorpy.trajectories.line_traj import Line3DTraj
+from rotorpy.trajectories.sin_traj import Sin3DTraj
+from rotorpy.trajectories.helical_traj import Helical3DTrajectory
+from rotorpy.trajectories.polynomial_traj import Polynomial
+from rotorpy.trajectories.polyseg_traj import Polyseg3DTrajectory
+from rotorpy.trajectories.rectangle2d_traj import Rectangle2DTrajectory
 
 # You can optionally specify a wind generator, although if no wind is specified it will default to NoWind().
 from rotorpy.wind.default_winds import NoWind, ConstantWind, SinusoidWind, LadderWind
@@ -55,10 +63,11 @@ world = World.from_file(os.path.abspath(os.path.join(os.path.dirname(__file__),'
 
 # "world" is an optional argument. If you don't load a world it'll just provide an empty playground! 
 
-# An instance of the simulator can be generated as follows: 
-sim_instance = Environment(vehicle=Multirotor(quad_params, control_abstraction='cmd_motor_thrusts'),           # vehicle object, must be specified.
-                           controller=NonlinearMPC(quad_params, 10),        # controller object, must be specified.
-                           trajectory=HoverTraj(),         # trajectory object, must be specified.
+# An instance of the simulator can be generated as follows:
+control_abs = "cmd_motor_speeds"
+sim_instance = Environment(vehicle=Multirotor(quad_params, control_abstraction=control_abs),           # vehicle object, must be specified.
+                           controller=SE3Control(quad_params),        # controller object, must be specified.
+                           trajectory=Rectangle2DTrajectory(),         # trajectory object, must be specified.
                            wind_profile=None,               # OPTIONAL: wind profile object, if none is supplied it will choose no wind.
                            sim_rate     = 100,                        # OPTIONAL: The update frequency of the simulator in Hz. Default is 100 Hz.
                            imu          = None,                       # OPTIONAL: imu sensor object, if none is supplied it will choose a default IMU sensor.
@@ -78,10 +87,10 @@ Execution
 
 # Setting an initial state. This is optional, and the state representation depends on the vehicle used. 
 # Generally, vehicle objects should have an "initial_state" attribute. 
-x0 = {'x': np.array([5.5, -5.5, -5.48]),
-      'v': np.array([0.0,0.00,0.00]),
-      'q': np.array([0.0, 0.0, 0.0, 1]), # [i,j,k,w]
-      'w': np.array([0.0, 0.0, 0.0]),
+x0 = {'x': np.array([0.0, 0.0, 0.0]),
+      'v': np.array([0.0, 0.0, 0.0]),
+      'q': np.array([0, 0, 0, 1]), # [i,j,k,w]
+      'w': np.array([0, 0, 0]),
       'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten
       'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])}
 

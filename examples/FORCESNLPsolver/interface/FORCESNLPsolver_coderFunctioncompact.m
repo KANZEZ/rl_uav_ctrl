@@ -22,13 +22,13 @@
 % [OUTPUTS] = FORCESNLPsolver(INPUTS) solves an optimization problem where:
 % Inputs:
 % - xinit - matrix of size [13x1]
-% - x0 - matrix of size [170x1]
+% - x0 - matrix of size [187x1]
 % Outputs:
-% - outputs - column vector of length 170
+% - outputs - column vector of length 187
 function [outputs] = FORCESNLPsolver(xinit, x0)
     
     [output, ~, ~] = FORCESNLPsolverBuildable.forcesCall(xinit, x0);
-    outputs = coder.nullcopy(zeros(170,1));
+    outputs = coder.nullcopy(zeros(187,1));
     outputs(1:17) = output.x01;
     outputs(18:34) = output.x02;
     outputs(35:51) = output.x03;
@@ -39,4 +39,5 @@ function [outputs] = FORCESNLPsolver(xinit, x0)
     outputs(120:136) = output.x08;
     outputs(137:153) = output.x09;
     outputs(154:170) = output.x10;
+    outputs(171:187) = output.x11;
 end

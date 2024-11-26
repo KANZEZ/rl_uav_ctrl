@@ -59,3 +59,27 @@ class ReplayBuffer(object):
         for i in range(self.size):
             self.reward[i] = reward_obj.reward(self.next_obs[i], self.action[i], self.done[i])
 
+
+class TargetSelector(object):
+    def __init__(self, traj_obj, world_time_res, future_len=20):
+        self.traj_obj = traj_obj
+        self.future_len = int(future_len)
+        self.time_res = world_time_res
+
+    def get_target(self, t):
+        # t: world simulation time
+        tar = self.traj_obj.update(t) # flatness output
+        # return x, xdot for now, transform to state later
+        return tar['x'], tar['x_dot']
+
+    def get_future_tar(self, t):
+        # t: world simulation time
+        future_tar = [self.get_target(t + i * self.time_res) for i in range(self.future_len)]
+        return future_tar
+
+
+class RandomTrajGen(object):
+    def __init__(self):
+        pass
+
+

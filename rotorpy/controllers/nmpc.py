@@ -80,13 +80,22 @@ class NonlinearMPC(object):
 
         k = self.k_m/self.k_eta  # Ratio of torque to thrust coefficient.
 
-        self.f_to_TM = np.vstack((np.hstack([np.cross(self.rotor_pos[key],np.array([0,0,1])).reshape(-1,1)[0:2] for key in self.rotor_pos]),
+        # self.f_to_TM = np.vstack((np.hstack([np.cross(self.rotor_pos[key],np.array([0,0,1])).reshape(-1,1)[0:2] for key in self.rotor_pos]),
+        #                           (k * self.rotor_dir).reshape(1,-1)))
+        # self.f_to_TM = casadi.SX(self.f_to_TM.tolist())
+        self.f_to_TM = np.vstack((np.ones((1,self.num_rotors)),
+                                  np.hstack([np.cross(self.rotor_pos[key],np.array([0,0,1])).reshape(-1,1)[0:2] for key in self.rotor_pos]),
                                   (k * self.rotor_dir).reshape(1,-1)))
-        self.f_to_TM = casadi.SX(self.f_to_TM.tolist())
+        self.TM_to_f = np.linalg.inv(self.f_to_TM)
 
         #### mpc problem ####
         self.generate_mpc_problem()
         self.x0 = np.zeros((self.model.nvar, self.model.N)) # initial guess
+
+
+    def get_equilibrium_thrust(self):
+        return np.full((4,), fill_value=self.mass * self.g / self.num_rotors)
+
 
     ################## need to check the dynamics ##################
     def quadrotor_simple_dynamics(self, s, u):
@@ -114,9 +123,9 @@ class NonlinearMPC(object):
         x, v, q, w = s[:3], s[3:6], s[6:10], s[10:13]
         R = self.casadi_quat2R(q)
         xd = v
-        vd = casadi.vertcat([0,0,-self.g]) + casadi.mtimes(R, casadi.vertcat(0,0,(u[0] + u[1] + u[2] + u[3])/self.mass))
+        vd = casadi.vertcat([0,0,-self.g]) + casadi.mtimes(R, casadi.vertcat(0,0,u[0]/self.mass))
         qd = self.casadi_quat_dot(q, w)
-        wd = casadi.mtimes(self.inv_inertia, (casadi.mtimes(self.f_to_TM, u) - casadi.cross(w, casadi.mtimes(self.inertia , w))))
+        wd = casadi.mtimes(self.inv_inertia, (u[1:] - casadi.cross(w, casadi.mtimes(self.inertia , w))))
         return casadi.vertcat(xd, vd, qd, wd)
 
 
@@ -158,7 +167,7 @@ class NonlinearMPC(object):
                                                      z[self.control_dim:], z[:self.control_dim],
                                                      integrator=forcespro.nlp.integrators.RK4,
                                                      stepsize=integrator_stepsize)
-        #self.model.eq = lambda z: self.quadrotor_simple_dynamics(z[self.control_dim:], z[:self.control_dim])
+        # self.model.eq = lambda z: self.quadrotor_simple_dynamics(z[self.control_dim:], z[:self.control_dim])
 
         # Indices on LHS of dynamical constraint - for efficiency reasons, make
         # sure the matrix E has structure [0 I] where I is the identity matrix.
@@ -191,12 +200,6 @@ class NonlinearMPC(object):
         codeoptions.overwrite = 1
         codeoptions.cleanup = False
         codeoptions.timing = 1
-
-        # codeoptions.nlp.hessian_approximation = 'bfgs'
-        # codeoptions.solvemethod = 'SQP_NLP' # choose the solver method Sequential
-        # #                              Quadratic Programming
-        # codeoptions.sqp_nlp.maxqps = 1      # maximum number of quadratic problems to be solved
-        # codeoptions.sqp_nlp.reg_hessian = 5e-2 # increase this if exitflag=-8
 
         codeoptions.noVariableElimination = 1
         codeoptions.nlp.TolStat = 1E-3
@@ -287,6 +290,10 @@ class NonlinearMPC(object):
 
         cmd_motor_thrusts = pred_u[:,0]
         #print(cmd_motor_thrusts)
+        TM = np.array([cmd_motor_thrusts[0], cmd_motor_thrusts[1], cmd_motor_thrusts[2], cmd_motor_thrusts[3]])
+        cmd_rotor_thrusts = self.TM_to_f @ TM
+        cmd_motor_speeds = cmd_rotor_thrusts / self.k_eta
+        cmd_motor_speeds = np.sign(cmd_motor_speeds) * np.sqrt(np.abs(cmd_motor_speeds))
 
         control_input = {'cmd_motor_speeds' :cmd_motor_speeds,
                          'cmd_motor_thrusts':cmd_motor_thrusts,
