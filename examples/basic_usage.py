@@ -67,7 +67,7 @@ world = World.from_file(os.path.abspath(os.path.join(os.path.dirname(__file__),'
 control_abs = "cmd_motor_speeds"
 sim_instance = Environment(vehicle=Multirotor(quad_params, control_abstraction=control_abs),           # vehicle object, must be specified.
                            controller=SE3Control(quad_params),        # controller object, must be specified.
-                           trajectory=Rectangle2DTrajectory(),         # trajectory object, must be specified.
+                           trajectory=ThreeDCircularTraj(np.array([0,0,0]), np.array([2,2,2]), np.array([0.3,0.3,0.3])),         # trajectory object, must be specified.
                            wind_profile=None,               # OPTIONAL: wind profile object, if none is supplied it will choose no wind.
                            sim_rate     = 100,                        # OPTIONAL: The update frequency of the simulator in Hz. Default is 100 Hz.
                            imu          = None,                       # OPTIONAL: imu sensor object, if none is supplied it will choose a default IMU sensor.
