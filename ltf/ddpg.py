@@ -111,7 +111,7 @@ class DDPG(object):
         self.discount = discount
         self.tau = tau
         self.min_noise = 0.01
-        self.noise_std = 0.5
+        self.noise_std = 0.6
         self.decay_rate = 0.9
         self.act_tar_noise = 0.5
         self.clip = 0.5

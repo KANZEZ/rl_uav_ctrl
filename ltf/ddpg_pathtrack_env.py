@@ -32,6 +32,7 @@ class QuadrotorTrackingEnv(gym.Env):
                                         'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])},
                  control_mode = 'cmd_vel',
                  reward_fn = hover_reward,
+                 target_selector=None,
                  quad_params = crazyflie_params,
                  max_time = 10,                # Maximum time to run the simulation for in a single session.
                  wind_profile = None,         # wind profile object, if none is supplied it will choose no wind.
@@ -59,6 +60,7 @@ class QuadrotorTrackingEnv(gym.Env):
         self.sim_rate = sim_rate
         self.t_step = 1/self.sim_rate
         self.reward_fn = reward_fn
+        self.traj_obj = target_selector
 
         # Create quadrotor from quad params and control abstraction.
         self.quadrotor = Multirotor(quad_params=quad_params, initial_state=initial_state, control_abstraction=control_mode, aero=aero)
@@ -177,6 +179,9 @@ class QuadrotorTrackingEnv(gym.Env):
 
         super().reset(seed=seed)
 
+        self.traj_obj.traj_gen()
+        tar = self.traj_obj.get_tar(0)  ### env start from 0
+        tar_pos, tar_vel = tar['x'], tar['x_dot']
 
         if initial_state == 'random':
             # Randomly select an initial state for the quadrotor. At least assume it is level.
@@ -196,8 +201,8 @@ class QuadrotorTrackingEnv(gym.Env):
 
         ### add gudiance
         elif initial_state == 'guidance':
-            pos = np.array([0,0,0])
-            vel = np.random.uniform(low=-options['vel_bound'], high=options['vel_bound'], size=(3,))
+            pos = tar_pos
+            vel = tar_vel
             w = np.random.uniform(low=-1.5, high=1.5, size=(3,))
             q = Rotation.from_euler('zyx', np.random.uniform(low=-np.pi/2, high=np.pi/2, size=(3,))).as_quat()
             state = {'x': pos,
@@ -299,7 +304,9 @@ class QuadrotorTrackingEnv(gym.Env):
 
 
     def _get_reward(self, observation, action, terminated):
-        return self.reward_fn(observation, action, terminated)
+        ### add target
+        tar = self.traj_obj.get_tar(self.t)
+        return self.reward_fn(observation, action, terminated, tar)
 
 
     def rescale_action(self, action):

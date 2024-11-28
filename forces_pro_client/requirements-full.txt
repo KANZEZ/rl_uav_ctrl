@@ -1,0 +1,4 @@
+-r requirements.txt
+matplotlib >=3.1 # optional, only required for plotting in the example code
+msgpack >=1.0.5 # optional, only required for (de)serialization of C parameters
+suds-community >=0.7 # optional, only required when connecting to code generation server via WSDL instead of RestAPI

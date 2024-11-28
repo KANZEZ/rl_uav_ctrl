@@ -470,3 +470,48 @@ class Multirotor(object):
         """
         state = {'x':s[0:3], 'v':s[3:6], 'q':s[6:10], 'w':s[10:13], 'wind':s[13:16], 'rotor_speeds':s[16:]}
         return state
+
+
+    ##### from flatness state to state space ############
+    def flat_outputs_to_state(self, position, psi,
+                              velocity, psi_dot,
+                              acceleration, psi_ddot,
+                              jerk, psi_dddot,
+                              snap):
+
+        # Compute desired thrust
+        #thrust = self.mass * (acceleration + np.array([0, 0, self.g]))
+
+        # Compute desired orientation
+        phi = np.arctan2(acceleration(1) * np.cos(psi) - acceleration(0) * np.sin(psi), self.g + acceleration(2))
+        theta = np.arctan2(acceleration(0) * np.cos(psi) + acceleration(1) * np.sin(psi), self.g + acceleration(2))
+
+        # Desired rotation matrix
+        R_des = np.array([
+            [np.cos(theta)*np.cos(psi), np.cos(theta)*np.sin(psi), -np.sin(theta)],
+            [np.sin(phi)*np.sin(theta)*np.cos(psi) - np.cos(phi)*np.sin(psi), np.sin(phi)*np.sin(theta)*np.sin(psi) + np.cos(phi)*np.cos(psi), np.sin(phi)*np.cos(theta)],
+            [np.cos(phi)*np.sin(theta)*np.cos(psi) + np.sin(phi)*np.sin(psi), np.cos(phi)*np.sin(theta)*np.sin(psi) - np.sin(phi)*np.cos(psi), np.cos(phi)*np.cos(theta)]
+        ])
+
+        # Compute angular velocities
+        omega_des = np.array([
+            (theta * psi_dot * np.sin(phi)) / np.cos(theta),
+            theta * psi_dot * np.cos(phi),
+            psi_dot
+        ])
+
+        # Compute desired angular acceleration
+        # alpha_des = np.array([
+        #     (jerk(1) * np.cos(psi) - jerk(0) * np.sin(psi)) / np.cos(theta),
+        #     (jerk(0) * np.cos(psi) + jerk(1) * np.sin(psi)) / np.cos(phi),
+        #     psi_ddot
+        # ])
+
+        # # Compute desired angular jerk
+        # jerk_des = np.array([
+        #     (snap(1) * np.cos(psi) - snap(0) * np.sin(psi)) / np.cos(theta),
+        #     (snap(0) * np.cos(psi) + snap(1) * np.sin(psi)) / np.cos(phi),
+        #     psi_dddot
+        # ])
+
+        return R_des, omega_des

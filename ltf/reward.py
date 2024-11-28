@@ -4,6 +4,7 @@ import gymnasium as gym
 from gymnasium import spaces
 import math
 
+
 class CurriculumReward(object):
     def __init__(self):
         # curriculum learning params
@@ -13,7 +14,7 @@ class CurriculumReward(object):
         self.C_VEL_TARGET = 0.5
         self.C_ORIENT_INIT = 2.5
         self.C_ORIENT_TARGET = 2.5
-        self.C_ANGVEL_INIT = 0.02
+        self.C_ANGVEL_INIT = 0.00
         self.C_ANGVEL_TARGET = 2.0
         self.C_ACTION_INIT = 0.005
         self.C_ACTION_TARGET = 0.05
@@ -48,10 +49,10 @@ class CurriculumReward(object):
         # Compute the velocity reward
         vel_reward = -self.C_VEL_INIT*np.linalg.norm(observation[3:6])
 
-        #Compute the quaternion error, dont use it for now
+        #Compute the quaternion error
         quat_reward = -self.C_ORIENT_INIT*(1 - observation[9]**2) #np.linalg.norm(observation[6:10])
         #quat_reward += -self.C_ORIENT_INIT*np.linalg.norm(observation[6:9])
-        # Compute the angular rate reward, note that we set it to zero
+        # Compute the angular rate reward
         ang_rate_reward = -self.C_ANGVEL_INIT*np.linalg.norm(observation[10:13])
 
         # Compute the action reward
@@ -61,6 +62,43 @@ class CurriculumReward(object):
                 np.linalg.norm(observation[3:6]) < 0.05 and
                 np.linalg.norm(observation[10:13]) < 0.05):
             self.GOAL_REWARD = 500
+        else:
+            self.GOAL_REWARD = 0
+
+        if done:
+            return (dist_reward + vel_reward + ang_rate_reward + action_reward +
+                    self.GOAL_REWARD + quat_reward)
+
+        return (dist_reward + vel_reward + ang_rate_reward + action_reward +
+                self.SURVIVE_REWARD + self.GOAL_REWARD + quat_reward)
+
+
+
+    def tracking_reward(self, observation, action, done, tar):
+        """
+        Rewards tracking a trajectory. It is a combination of position error, velocity error, body rates, and
+        action reward.
+        """
+
+        tar_pos = tar['x']
+        tar_vel = tar['x_dot']
+
+        dist_reward = -self.C_POS_INIT*np.linalg.norm(observation[0:3] - tar_pos)
+
+        # Compute the velocity reward
+        vel_reward = -self.C_VEL_INIT*np.linalg.norm(observation[3:6] - tar_vel)
+
+        #Compute the quaternion error
+        quat_reward = -self.C_ORIENT_INIT*(1 - observation[9]**2)
+        # Compute the angular rate reward, note that we set it to zero
+        ang_rate_reward = -self.C_ANGVEL_INIT*np.linalg.norm(observation[10:13])
+
+        # Compute the action reward
+        action_reward = -self.C_ACTION_INIT*np.linalg.norm(action - self.rotor_speed_bs)
+
+        if (np.linalg.norm(observation[0:3] - tar_pos) < 0.02 and
+                np.linalg.norm(observation[3:6] - tar_vel) < 0.05):
+            self.GOAL_REWARD = 50
         else:
             self.GOAL_REWARD = 0
 
