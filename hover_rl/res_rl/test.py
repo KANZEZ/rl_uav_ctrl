@@ -1,18 +1,19 @@
 from matplotlib import pyplot as plt
 
-import ddpg_eval
 import numpy as np
-import torch
 import gymnasium as gym
-from ddpg import DDPG
-from reward import CurriculumReward
-from env_helper import ActionContainer
+from ddpg_res import RlPidTD3
+from rlpid_reward import RlPidCurriculumReward
+from rlpid_env_helper import RlPidActionContainer, RlPidTargetSelector
 from rotorpy.vehicles.crazyflie_params import quad_params
 from rotorpy.controllers.quadrotor_control import SE3Control
-from rotorpy.wind.default_winds import NoWind, ConstantWind, SinusoidWind, LadderWind
-baseline_controller = SE3Control(quad_params)
+from rotorpy.wind.default_winds import ConstantWind, RandomWind, SinusoidWind
+from rotorpy.learning.quad_rlpid_env import QuadRlPidEnv
+from config import *
 
- ##################### decent evaluation comparison here ############################
+controller = SE3Control(quad_params)
+
+##################### decent evaluation comparison here ############################
 
 
 if __name__ == "__main__":
@@ -22,24 +23,28 @@ if __name__ == "__main__":
 
     # Make the environments for the RL agents.
     num_quads = 1
-    pos_bound, vel_bound = 0.3, 0.0
-    model = DDPG(13, 4)
-    path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/17-49-01/"
+    model = RlPidTD3()
+    path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/18-06-12/"
     # Load the policy
     model.load(path)
     model.eval_mode()
-    reward_obj = CurriculumReward()
-    reward_function = lambda obs, act, finish: reward_obj.reward(obs, act, finish)
-    #wind = SinusoidWind(amplitudes=[4,-3,1.3], frequencies=[1,2,2])
-    #wind = ConstantWind(-1, -1, -1)
-    wind = None
+    reward_obj = RlPidCurriculumReward()
+    trk_reward_func = lambda obs, act, finish: reward_obj.res_reward(obs, act, finish)
+    #wind = SinusoidWind(amplitudes=[4,-3,0.3], frequencies=[1,2,2])
+    #wind = ConstantWind(-3, 3, 3)
+    wind = RandomWind(WIND_LOWER_BOUND, WIND_UPPER_BOUND)
+    #wind = None
+
+    # trajectory it follows
+
+    traj_selector = RlPidTargetSelector(prob=np.array([1.0 ,0, 0, 0]))
 
     def make_env():
-        return gym.make("Quadrotor-v0",
+        return gym.make("Quadrotor-v2",
                         control_mode ='cmd_motor_speeds',
-                        reward_fn = reward_function,
+                        reward_fn = trk_reward_func,
                         quad_params = quad_params,
-                        max_time = 5,
+                        max_time = 8,
                         world = None,
                         sim_rate = 100,
                         render_mode='3D',
@@ -47,16 +52,18 @@ if __name__ == "__main__":
                         fig=fig,
                         ax=ax,
                         color='b',
-                        wind_profile=wind)
+                        wind_profile=wind,
+                        target_selector=traj_selector,
+                        controller=controller)
 
     envs = [make_env() for _ in range(num_quads)]
 
     # Lastly, add in the baseline (SE3 controller) environment.
-    envs.append(gym.make("Quadrotor-v0",
+    envs.append(gym.make("Quadrotor-v2",
                          control_mode ='cmd_motor_speeds',
-                         reward_fn = reward_function,
+                         reward_fn = trk_reward_func,
                          quad_params = quad_params,
-                         max_time = 5,
+                         max_time = 8,
                          world = None,
                          sim_rate = 100,
                          render_mode='3D',
@@ -64,7 +71,10 @@ if __name__ == "__main__":
                          fig=fig,
                          ax=ax,
                          color='k',
-                         wind_profile=wind))  # Geometric controller
+                         wind_profile=wind,
+                         target_selector=traj_selector,
+                         controller=controller))  # Geometric controller
+
 
     # Evaluation...
     num_timesteps_idxs = [1]
@@ -72,31 +82,34 @@ if __name__ == "__main__":
 
         print(f"[ppo_hover_eval.py]: Starting epoch {k+1} out of {len(num_timesteps_idxs)}.")
 
-        # initial_state = {'x': np.array([-3.5, -3.5, -3.48]),
-        #                       'v': np.array([-2.67,-2.38,-1.05]),
-        #                       'q': np.array([0.4, 0.5, 0.66, 0.92]), # [i,j,k,w]
-        #                       'w': np.array([0.5, 0.38, 1.0]),
-        #                       'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten
-        #                       'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])}
-        initial_state = {'x': np.array([5.5, -5.5, -5.48]),
-              'v': np.array([0.0,0.00,0.00]),
-              'q': np.array([0.0, 0.0, 0.0, 1]), # [i,j,k,w]
-              'w': np.array([0.0, 0.0, 0.0]),
-              'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten
-              'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])}
-
+        initial_state = {'x': np.array([0.0, 0.0, 1.0]),
+                         'v': np.array([0.0,0.0,0.0]),
+                         'q': np.array([0, 0, 0, 1]), # [i,j,k,w]
+                         'w': np.array([0.0, 0.0, 0.0]),
+                         'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten
+                         'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])}
 
         # Collect observations for each environment.
-        observations = [env.reset(initial_state=initial_state, options={'pos_bound': pos_bound,
-                                                                   'vel_bound': vel_bound})[0] for env in envs]
+        observations = [env.reset(initial_state='random', options={'pos_bound': POS_BOUND,
+                                                                     'vel_bound': VEL_BOUND})[0] for env in envs]
 
 
-        act_hss = [ActionContainer(4) for _ in range(num_quads)]
+        traj_obj = traj_selector.traj_obj
+        t = np.linspace(0, 10, 1000)
+        traj = np.zeros((len(t), 3))
+        for i in range(len(t)):
+            traj[i] = traj_obj.update(t[i])['x']
+        ax.plot(traj[:,0], traj[:,1], traj[:,2], 'r-', linewidth=0.7)
+
+        act_hss = [RlPidActionContainer() for _ in range(num_quads)]
         # This is a list of env termination conditions so that the loop only ends when the final env is terminated.
         terminated = [False]*len(observations)
 
 
         print(observations[0])
+
+        ## get the new target:
+        tar = traj_obj.update(0)
 
         # Arrays for plotting position vs time.
         T = [0]
@@ -116,14 +129,8 @@ if __name__ == "__main__":
                     state = {'x': observations[i][0:3], 'v': observations[i][3:6], 'q': observations[i][6:10], 'w': observations[i][10:13]}
 
                     # Command the quad to hover.
-                    flat = {'x': [0, 0, 0],
-                            'x_dot': [0, 0, 0],
-                            'x_ddot': [0, 0, 0],
-                            'x_dddot': [0, 0, 0],
-                            'yaw': 0,
-                            'yaw_dot': 0,
-                            'yaw_ddot': 0}
-                    control_dict = baseline_controller.update(0, state, flat)
+                    flat = tar
+                    control_dict = controller.update(0, state, flat)
 
                     # Extract the commanded motor speeds.
                     cmd_motor_speeds = control_dict['cmd_motor_speeds']
@@ -133,13 +140,30 @@ if __name__ == "__main__":
 
                     # For the last environment, append the current timestep.
                     T.append(env.unwrapped.t)
+                    tar = traj_obj.update(env.unwrapped.t)
 
                 else: # For all other environments, get the action from the RL control policy.
-                    #action, _ = model.predict(observations[i], deterministic=True)
-                    cur_ah = act_hss[i].get()
-                    action = model.select_action(observations[i], cur_ah)
-                    act_hss[i].add(action)
 
+                    state = {'x': observations[i][0:3], 'v': observations[i][3:6], 'q': observations[i][6:10], 'w': observations[i][10:13]}
+                    # Command the quad to hover.
+                    flat = tar
+                    control_dict = controller.update(0, state, flat)
+                    # Extract the commanded motor speeds.
+                    cmd_motor_speeds = control_dict['cmd_motor_speeds']
+                    speed = np.interp(cmd_motor_speeds, [env.unwrapped.rotor_speed_min, env.unwrapped.rotor_speed_max], [-1,1])
+
+                    cur_ah = act_hss[i].get()
+                    fu_traj = env.get_flat_future_traj()
+                    action1 = model.select_action(observations[i], cur_ah, fu_traj, speed)
+                    act_hss[i].add(action1)
+
+                    #res_speed = np.interp(action1, [-1,1], [env.unwrapped.rotor_speed_min, env.unwrapped.rotor_speed_max])
+
+                    #cmd_motor_speeds += res_speed
+
+                    #speedd = np.interp(action1, [-1,1], [env.unwrapped.rotor_speed_min, env.unwrapped.rotor_speed_max], )
+                    action = action1
+                    #print(speedd)
                 # Step the environment forward.
                 observations[i], reward, terminated[i], truncated, info = env.step(action)
 

@@ -1,16 +1,14 @@
 from matplotlib import pyplot as plt
 
-import ddpg_eval
 import numpy as np
-import torch
 import gymnasium as gym
-from ddpg import DDPG
+from ddpy_trk import DDPG
 from reward import CurriculumReward
-from env_helper import ActionContainer
+from env_helper import ActionContainer, TargetSelector
 from rotorpy.vehicles.crazyflie_params import quad_params
 from rotorpy.controllers.quadrotor_control import SE3Control
-from rotorpy.wind.default_winds import NoWind, ConstantWind, SinusoidWind, LadderWind
-from rotorpy.trajectories.lissajous_traj import TwoDLissajous
+from rotorpy.wind.default_winds import ConstantWind
+
 baseline_controller = SE3Control(quad_params)
 
 ##################### decent evaluation comparison here ############################
@@ -22,37 +20,30 @@ if __name__ == "__main__":
     ax = fig.add_subplot(projection='3d')
 
     # Make the environments for the RL agents.
-    num_quads = 1
+    num_quads = 0
     pos_bound, vel_bound = 0.5, .0
     model = DDPG(13, 4)
-    path = "/home/hsh/Code/rl_uav_control/rotorpy/learning/policies/DDPG/17-49-01/"
+    path = "/rotorpy/learning/policies/DDPG/22-42-26/"
     # Load the policy
     model.load(path)
     model.eval_mode()
     reward_obj = CurriculumReward()
-    reward_function = lambda obs, act, finish: reward_obj.reward(obs, act, finish)
+    trk_reward_func = lambda obs, act, done, target: reward_obj.tracking_reward(obs, act, done, target)
 
     #wind = SinusoidWind(amplitudes=[4,-3,0.3], frequencies=[1,2,2])
-    #wind = ConstantWind(-1, -1, -1)
-    wind = None
+    wind = ConstantWind(-3, 3, 3)
+    #wind = None
 
     # trajectory it follows
-    traj = TwoDLissajous(A=2.0, B=1.0, a=1.0, b=2.0, delta=0, height=1)
-    #plot the traj
-    t_traj = np.linspace(0, 50, 5000)
-    x_traj = [traj.update(t)['x'] for t in t_traj]
-    x_traj = np.array(x_traj)
-    ax.plot(x_traj[:,0], x_traj[:,1], x_traj[:,2], 'r-', linewidth=0.7)
 
-    prev_t = 0
-    update_dur = 0.00000001
+    traj_selector = TargetSelector(prob=np.array([1.0 ,0, 0, 0]))
 
     def make_env():
-        return gym.make("Quadrotor-v0",
+        return gym.make("Quadrotor-v1",
                         control_mode ='cmd_motor_speeds',
-                        reward_fn = reward_function,
+                        reward_fn = trk_reward_func,
                         quad_params = quad_params,
-                        max_time = 50,
+                        max_time = 100,
                         world = None,
                         sim_rate = 100,
                         render_mode='3D',
@@ -60,16 +51,17 @@ if __name__ == "__main__":
                         fig=fig,
                         ax=ax,
                         color='b',
-                        wind_profile=wind)
+                        wind_profile=wind,
+                        target_selector=traj_selector)
 
     envs = [make_env() for _ in range(num_quads)]
 
     # Lastly, add in the baseline (SE3 controller) environment.
-    envs.append(gym.make("Quadrotor-v0",
+    envs.append(gym.make("Quadrotor-v1",
                          control_mode ='cmd_motor_speeds',
-                         reward_fn = reward_function,
+                         reward_fn = trk_reward_func,
                          quad_params = quad_params,
-                         max_time = 50,
+                         max_time = 100,
                          world = None,
                          sim_rate = 100,
                          render_mode='3D',
@@ -77,7 +69,9 @@ if __name__ == "__main__":
                          fig=fig,
                          ax=ax,
                          color='k',
-                         wind_profile=wind))  # Geometric controller
+                         wind_profile=wind,
+                         target_selector=traj_selector))  # Geometric controller
+
 
     # Evaluation...
     num_timesteps_idxs = [1]
@@ -93,9 +87,16 @@ if __name__ == "__main__":
                          'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])}
 
         # Collect observations for each environment.
-        observations = [env.reset(initial_state=initial_state, options={'pos_bound': pos_bound,
+        observations = [env.reset(initial_state='guidance', options={'pos_bound': pos_bound,
                                                                         'vel_bound': vel_bound})[0] for env in envs]
 
+
+        traj_obj = traj_selector.traj_obj
+        t = np.linspace(0, 10, 1000)
+        traj = np.zeros((len(t), 3))
+        for i in range(len(t)):
+            traj[i] = traj_obj.update(t[i])['x']
+        ax.plot(traj[:,0], traj[:,1], traj[:,2], 'r-', linewidth=0.7)
 
         act_hss = [ActionContainer(4) for _ in range(num_quads)]
         # This is a list of env termination conditions so that the loop only ends when the final env is terminated.
@@ -105,8 +106,7 @@ if __name__ == "__main__":
         print(observations[0])
 
         ## get the new target:
-        tar = traj.update(0)
-
+        tar = traj_obj.update(0)
 
         # Arrays for plotting position vs time.
         T = [0]
@@ -137,17 +137,13 @@ if __name__ == "__main__":
 
                     # For the last environment, append the current timestep.
                     T.append(env.unwrapped.t)
-                    #if env.unwrapped.t - prev_t > update_dur:
-                    #prev_t = env.unwrapped.t
-                    tar = traj.update(env.unwrapped.t)
+                    tar = traj_obj.update(env.unwrapped.t)
 
                 else: # For all other environments, get the action from the RL control policy.
-                    #action, _ = model.predict(observations[i], deterministic=True)
+                    action, _ = model.predict(observations[i], deterministic=True)
                     cur_ah = act_hss[i].get()
-                    offset_obs = np.copy(observations[i])
-                    offset_obs[:3] -= tar['x']
-                    #offset_obs[3:6] -= tar['x_dot'] # comment this will increase the performance, but theorically not right
-                    action = model.select_action(offset_obs, cur_ah)
+                    fu_traj = env.get_flat_future_traj()
+                    action = model.select_action(observations[i], cur_ah, fu_traj)
                     act_hss[i].add(action)
 
                 # Step the environment forward.

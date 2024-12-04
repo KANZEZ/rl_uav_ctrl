@@ -24,15 +24,15 @@ class QuadrotorTrackingEnv(gym.Env):
                 "render_fps": 30,
                 "control_modes": ['cmd_motor_speeds', 'cmd_motor_thrusts', 'cmd_ctbr', 'cmd_ctbm', 'cmd_vel']}
 
-    def __init__(self, initial_state = {'x': np.array([0,0,0]),
+    def __init__(self,
+                 initial_state = {'x': np.array([0,0,0]),
                                         'v': np.zeros(3,),
                                         'q': np.array([0, 0, 0, 1]), # [i,j,k,w]
                                         'w': np.zeros(3,),
                                         'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten
                                         'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])},
                  control_mode = 'cmd_vel',
-                 reward_fn = hover_reward,
-                 target_selector=None,
+                 reward_fn = None,
                  quad_params = crazyflie_params,
                  max_time = 10,                # Maximum time to run the simulation for in a single session.
                  wind_profile = None,         # wind profile object, if none is supplied it will choose no wind.
@@ -45,7 +45,8 @@ class QuadrotorTrackingEnv(gym.Env):
                  ax = None,                   # Axis for rendering. Optional.
                  color = None,                # The color of the quadrotor.
                  obs_dim = 13,                # The observation dimension
-                 action_dim = 4):
+                 action_dim = 4,
+                 target_selector=None):
 
         super(QuadrotorTrackingEnv, self).__init__()
         self.metadata['render_fps'] = render_fps
@@ -61,6 +62,7 @@ class QuadrotorTrackingEnv(gym.Env):
         self.t_step = 1/self.sim_rate
         self.reward_fn = reward_fn
         self.traj_obj = target_selector
+        self.traj_line = None
 
         # Create quadrotor from quad params and control abstraction.
         self.quadrotor = Multirotor(quad_params=quad_params, initial_state=initial_state, control_abstraction=control_mode, aero=aero)
@@ -180,8 +182,10 @@ class QuadrotorTrackingEnv(gym.Env):
         super().reset(seed=seed)
 
         self.traj_obj.traj_gen()
-        tar = self.traj_obj.get_tar(0)  ### env start from 0
+        tar = self.traj_obj.get_tar(0.0)  ### env start from 0
         tar_pos, tar_vel = tar['x'], tar['x_dot']
+
+        self.traj_line = self.traj_obj.traj_drawer()
 
         if initial_state == 'random':
             # Randomly select an initial state for the quadrotor. At least assume it is level.
@@ -305,8 +309,8 @@ class QuadrotorTrackingEnv(gym.Env):
 
     def _get_reward(self, observation, action, terminated):
         ### add target
-        tar = self.traj_obj.get_tar(self.t)
-        return self.reward_fn(observation, action, terminated, tar)
+        return self.reward_fn(observation, action, terminated, self.traj_obj.get_tar(self.t))
+        #return self.reward_fn(observation, action, terminated)
 
 
     def rescale_action(self, action):
@@ -406,6 +410,10 @@ class QuadrotorTrackingEnv(gym.Env):
         self.quad_obj.transform(position=plot_position, rotation=plot_rotation, wind=plot_wind)
         self.title_artist.set_text('t = {:.2f}'.format(self.t))
 
+        plt.plot(self.traj_line[:,0],
+                    self.traj_line[:,1],
+                    self.traj_line[:,2], 'r--')
+
         plt.pause(1e-9)
 
         return
@@ -414,7 +422,15 @@ class QuadrotorTrackingEnv(gym.Env):
 
         print("Time: %3.2f \t Position: (%3.2f, %3.2f, %3.2f) \t Reward: %3.2f" % (self.t, self.vehicle_state['x'][0], self.vehicle_state['x'][1], self.vehicle_state['x'][2], self.reward))
 
+    def close(self):
+        """
+        Close the environment
+        """
+        return None
 
+
+    def get_flat_future_traj(self):
+        return self.traj_obj.get_future_traj(self.t).flatten()
 
 
 

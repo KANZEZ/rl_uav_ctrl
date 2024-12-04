@@ -50,6 +50,42 @@ class ConstantWind(object):
 
         return self.wind
 
+
+class RandomWind(object):
+    """
+    This wind profile is a random wind profile that changes every t seconds.
+    Wind speed is specified on each axis.
+    """
+
+    def __init__(self, lb=np.array([-1, -1, -1]), ub=np.array([1, 1, 1])):
+        """
+        """
+        self.lb = lb
+        self.ub = ub
+        self.wind = np.array([np.random.uniform(lb[0], ub[0]),
+                              np.random.uniform(lb[1], ub[1]),
+                              np.random.uniform(lb[2], ub[2])])
+
+    def generate(self):
+        self.wind = np.array([np.random.uniform(self.lb[0], self.ub[0]),
+                              np.random.uniform(self.lb[1], self.ub[1]),
+                              np.random.uniform(self.lb[2], self.ub[2])])
+
+    def update(self, t, position):
+        """
+        Given the present time and position of the multirotor, return the
+        Random wind speed on all three axes.
+
+        The wind should be expressed in the world coordinates.
+        """
+
+        # self.wind = np.array([np.random.uniform(self.lb[0], self.ub[0]),
+        #                       np.random.uniform(self.lb[1], self.ub[1]),
+        #                       np.random.uniform(self.lb[2], self.ub[2])])
+
+        return self.wind
+
+
 class SinusoidWind(object):
     """
     Wind will vary subject to a sine function with appropriate amplitude, frequency, and phase offset.
