@@ -10,7 +10,7 @@ from rotorpy.vehicles.crazyflie_params import quad_params  # Import quad params 
 from rotorpy.learning.quadrotor_environments import QuadrotorEnv
 
 # Reward functions can be specified by the user, or we can import from existing reward functions.
-from rotorpy.learning.quadrotor_reward_functions import hover_reward
+from rotorpy.learning.quadrotor_reward_functions import hover_reward_ppo
 
 """
 In this script, we demonstrate how to train a hovering control policy in RotorPy using Proximal Policy Optimization. 
@@ -43,7 +43,7 @@ from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckA
 num_cpu = 4   # for parallelization
 
 # Choose the weights for our reward function. Here we are creating a lambda function over hover_reward.
-reward_function = lambda obs, act: hover_reward(obs, act, weights={'x': 1, 'v': 0.1, 'w': 0, 'u': 1e-5})
+reward_function = lambda obs, act, done: hover_reward_ppo(obs, act, done, weights={'x': 1, 'v': 0.1, 'w': 0, 'u': 1e-5})
 
 # Make the environment. For this demo we'll train a policy to command collective thrust and body rates.
 # Turning render_mode="None" will make the training run much faster, as visualization is a current bottleneck. 

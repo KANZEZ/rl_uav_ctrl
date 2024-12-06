@@ -139,3 +139,5 @@ examples/*.force
 c_generated_code/
 
 acados_solver/
+
+media1/

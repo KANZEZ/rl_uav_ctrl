@@ -6,7 +6,7 @@ import matplotlib.colors as mcolors
 from rotorpy.world import World
 from rotorpy.vehicles.multirotor import Multirotor
 from rotorpy.vehicles.crazyflie_params import quad_params as crazyflie_params
-from rotorpy.learning.quadrotor_reward_functions import hover_reward
+from rotorpy.learning.quadrotor_reward_functions import hover_reward_ppo
 from rotorpy.utils.shapes import Quadrotor
 
 import gymnasium as gym
@@ -55,7 +55,7 @@ class QuadrotorEnv(gym.Env):
                                   'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten
                                   'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])},
                  control_mode = 'cmd_vel',
-                 reward_fn = hover_reward,            
+                 reward_fn = hover_reward_ppo,
                  quad_params = crazyflie_params,                   
                  max_time = 10,                # Maximum time to run the simulation for in a single session.
                  wind_profile = None,         # wind profile object, if none is supplied it will choose no wind. 
@@ -144,7 +144,7 @@ class QuadrotorEnv(gym.Env):
 
         if world is None:
             # If no world is specified, assume that it means that the intended world is free space.
-            wbound = 6
+            wbound = 4
             self.world = World.empty((-wbound, wbound, -wbound, 
                                        wbound, -wbound, wbound))
         else:
@@ -218,8 +218,10 @@ class QuadrotorEnv(gym.Env):
             # Randomly select an initial state for the quadrotor. At least assume it is level. 
             pos = np.random.uniform(low=-options['pos_bound'], high=options['pos_bound'], size=(3,))
             vel = np.random.uniform(low=-options['vel_bound'], high=options['vel_bound'], size=(3,))
+
             w = np.random.uniform(low=-1.5, high=1.5, size=(3,))
             q = Rotation.from_euler('zyx', np.random.uniform(low=-np.pi/2, high=np.pi/2, size=(3,))).as_quat()
+
             state = {'x': pos,
                      'v': vel,
                      'q': q, #np.array([0,0,0,1]), # [i,j,k,w]   # [i,j,k,w]
@@ -399,7 +401,6 @@ class QuadrotorEnv(gym.Env):
         """
 
         return self.reward_fn(observation, action, done)
-        #return self.reward_fn(observation, action)
     
     def safety_exit(self):
         """

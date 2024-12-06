@@ -10,7 +10,7 @@ import math
 Reward functions for quadrotor tasks. 
 """
 
-def hover_reward(observation, action, weights={'x': 1, 'v': 0.1, 'w': 0, 'u': 1e-5}):
+def hover_reward_ppo(observation, action, done, weights={'x': 1, 'v': 0.1, 'w': 0, 'u': 1e-5}):
     """
     Rewards hovering at (0, 0, 0). It is a combination of position error, velocity error, body rates, and 
     action reward.

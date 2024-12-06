@@ -9,6 +9,8 @@ from rotorpy.vehicles.crazyflie_params import quad_params
 from rotorpy.controllers.quadrotor_control import SE3Control
 from rotorpy.learning.quadrotor_environments import QuadrotorEnv
 from rotorpy.wind.default_winds import ConstantWind, SinusoidWind
+from stable_baselines3 import PPO
+from rotorpy.learning.quadrotor_reward_functions import hover_reward_ppo
 from end2end_config import *
 
 baseline_controller = SE3Control(quad_params)
@@ -30,8 +32,9 @@ if __name__ == "__main__":
     reward_obj = CurriculumReward()
     reward_function = lambda obs, act, finish: reward_obj.hover_reward(obs, act, finish)
     wind = SinusoidWind(amplitudes=[4,-3,1.3], frequencies=[1,2,2])
-    #wind = ConstantWind(1, -1, -0.7)
+    #wind = ConstantWind(-2, -2, -1.7)
     #wind = None
+
 
     def make_env():
         return gym.make(ENV_NAME,
@@ -45,7 +48,7 @@ if __name__ == "__main__":
                         render_fps = 60,
                         fig=fig,
                         ax=ax,
-                        color='b',
+                        color='y',
                         wind_profile=wind)
 
     envs = [make_env() for _ in range(num_quads)]
@@ -65,18 +68,26 @@ if __name__ == "__main__":
                          color='k',
                          wind_profile=wind))  # Geometric controller
 
+
     # Evaluation...
     num_timesteps_idxs = [1]
     for (k, num_timesteps_idx) in enumerate(num_timesteps_idxs):  # For each num_timesteps index...
 
         print(f"[ppo_hover_eval.py]: Starting epoch {k+1} out of {len(num_timesteps_idxs)}.")
 
-        initial_state = {'x': np.array([-3.5, -3.5, -3.48]),
-                              'v': np.array([-2.67,-2.38,-1.05]),
+        initial_state = {'x': np.array([-2.5, -3.0, -3.0]),
+                              'v': np.array([-1.67,-1.38,-1.05]),
                               'q': np.array([0.4, 0.5, 0.66, 0.92]), # [i,j,k,w]
                               'w': np.array([0.5, 0.38, 1.0]),
                               'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten
                               'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])}
+
+        # initial_state = {'x': np.array([-3.0, -2.5, -2.48]),
+        #                  'v': np.array([-0.1,-0.2,-0.1]),
+        #                  'q': np.array([0.0, 0.0, 0.0, 1.0]), # [i,j,k,w]
+        #                  'w': np.array([0.0, 0.0, 0.0]),
+        #                  'wind': np.array([0,0,0]),  # Since wind is handled elsewhere, this value is overwritten
+        #                  'rotor_speeds': np.array([1788.53, 1788.53, 1788.53, 1788.53])}
 
 
         # Collect observations for each environment.
@@ -96,6 +107,9 @@ if __name__ == "__main__":
         x = [[obs[0] for obs in observations]]
         y = [[obs[1] for obs in observations]]
         z = [[obs[2] for obs in observations]]
+        vx = [[obs[3] for obs in observations]]
+        vy = [[obs[4] for obs in observations]]
+        vz = [[obs[5] for obs in observations]]
 
         j = 0  # Index for frames. Only updated when the last environment runs its update for the time step.
         while not all(terminated):
@@ -131,6 +145,7 @@ if __name__ == "__main__":
                     cur_ah = act_hss[i].get()
                     action = model.select_action(observations[i], cur_ah)
                     act_hss[i].add(action)
+                    #action, _ = model_ppo.predict(observations[i], deterministic=True)
 
                 # Step the environment forward.
                 observations[i], reward, terminated[i], truncated, info = env.step(action)
@@ -139,32 +154,61 @@ if __name__ == "__main__":
             x.append([obs[0] for obs in observations])
             y.append([obs[1] for obs in observations])
             z.append([obs[2] for obs in observations])
+            vx.append([obs[3] for obs in observations])
+            vy.append([obs[4] for obs in observations])
+            vz.append([obs[5] for obs in observations])
+
 
         # Convert to numpy arrays.
         x = np.array(x)
         y = np.array(y)
         z = np.array(z)
+        vx = np.array(vx)
+        vy = np.array(vy)
+        vz = np.array(vz)
         T = np.array(T)
 
         # Plot position vs time.
         fig_pos, ax_pos = plt.subplots(nrows=3, ncols=1, num="Position vs Time")
+        fig_pos.suptitle("Position vs Time")
         #fig_pos.suptitle(f"Model: PPO/{models_available[model_idx]}, Num Timesteps: {extract_number(num_timesteps_list_sorted[num_timesteps_idx]):,}")
-        ax_pos[0].plot(T, x[:, 0], 'b-', linewidth=1, label="RL")
-        ax_pos[0].plot(T, x[:, 1:-1], 'b-', linewidth=1)
-        ax_pos[0].plot(T, x[:, -1], 'k-', linewidth=2, label="GC")
+        ax_pos[0].plot(T, x[:, 0], 'b-', linewidth=3, label="Our policy")
+        ax_pos[0].plot(T, x[:, 1:-1], 'k-', linewidth=3, label="SE3 control")
+        #ax_pos[0].plot(T, x[:, -1], 'r-', linewidth=1, label="PPO")
         ax_pos[0].legend()
-        ax_pos[0].set_ylabel("X, m")
-        ax_pos[0].set_ylim([-7.5, 7.5])
-        ax_pos[1].plot(T, y[:, 0], 'b-', linewidth=1, label="RL")
-        ax_pos[1].plot(T, y[:, 1:-1], 'b-', linewidth=1)
-        ax_pos[1].plot(T, y[:, -1], 'k-', linewidth=2, label="GC")
-        ax_pos[1].set_ylabel("Y, m")
-        ax_pos[1].set_ylim([-7.5, 7.5])
-        ax_pos[2].plot(T, z[:, 0], 'b-', linewidth=1, label="RL")
-        ax_pos[2].plot(T, z[:, 1:-1], 'b-', linewidth=1)
-        ax_pos[2].plot(T, z[:, -1], 'k-', linewidth=2, label="GC")
-        ax_pos[2].set_ylabel("Z, m")
-        ax_pos[2].set_ylim([-7.5, 7.5])
-        ax_pos[2].set_xlabel("Time, s")
+        ax_pos[0].set_ylabel("X")
+        #ax_pos[0].set_ylim([-7.5, 7.5])
+        ax_pos[1].plot(T, y[:, 0], 'b-', linewidth=3, label="Our policy")
+        ax_pos[1].plot(T, y[:, 1:-1], 'k-', linewidth=3, label="SE3 control")
+        #ax_pos[1].plot(T, y[:, -1], 'r-', linewidth=1, label="PPO")
+        ax_pos[1].set_ylabel("Y")
+        #ax_pos[1].set_ylim([-7.5, 7.5])
+        ax_pos[2].plot(T, z[:, 0], 'b-', linewidth=3, label="Our policy")
+        ax_pos[2].plot(T, z[:, 1:-1], 'k-', linewidth=3, label="SE3 control")
+        #ax_pos[2].plot(T, z[:, -1], 'r-', linewidth=1, label="PPO")
+        ax_pos[2].set_ylabel("Z")
+        #ax_pos[2].set_ylim([-7.5, 7.5])
+        ax_pos[2].set_xlabel("Time")
+
+        fig_pos2, ax_pos2 = plt.subplots(nrows=3, ncols=1, num="Velocity vs Time")
+        fig_pos2.suptitle("Velocity vs Time")
+        #fig_pos.suptitle(f"Model: PPO/{models_available[model_idx]}, Num Timesteps: {extract_number(num_timesteps_list_sorted[num_timesteps_idx]):,}")
+        ax_pos2[0].plot(T, vx[:, 0], 'b-', linewidth=3, label="Our policy")
+        ax_pos2[0].plot(T, vx[:, 1:-1], 'k-', linewidth=3, label="SE3 control")
+        #ax_pos[0].plot(T, x[:, -1], 'r-', linewidth=1, label="PPO")
+        ax_pos2[0].legend()
+        ax_pos2[0].set_ylabel("VX")
+        #ax_pos[0].set_ylim([-7.5, 7.5])
+        ax_pos2[1].plot(T, vy[:, 0], 'b-', linewidth=3, label="Our policy")
+        ax_pos2[1].plot(T, vy[:, 1:-1], 'k-', linewidth=3, label="SE3 control")
+        #ax_pos[1].plot(T, y[:, -1], 'r-', linewidth=1, label="PPO")
+        ax_pos2[1].set_ylabel("VY")
+        #ax_pos[1].set_ylim([-7.5, 7.5])
+        ax_pos2[2].plot(T, vz[:, 0], 'b-', linewidth=3, label="Our policy")
+        ax_pos2[2].plot(T, vz[:, 1:-1], 'k-', linewidth=3, label="SE3 control")
+        #ax_pos[2].plot(T, z[:, -1], 'r-', linewidth=1, label="PPO")
+        ax_pos2[2].set_ylabel("VZ")
+        #ax_pos[2].set_ylim([-7.5, 7.5])
+        ax_pos2[2].set_xlabel("Time")
 
     plt.show()

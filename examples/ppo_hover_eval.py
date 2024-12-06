@@ -9,7 +9,7 @@ from rotorpy.vehicles.crazyflie_params import quad_params  # Import quad params 
 from rotorpy.learning.quadrotor_environments import QuadrotorEnv
 
 # Reward functions can be specified by the user, or we can import from existing reward functions.
-from rotorpy.learning.quadrotor_reward_functions import hover_reward
+from rotorpy.learning.quadrotor_reward_functions import hover_reward_ppo
 
 # For the baseline, we'll use the stock SE3 controller.
 from rotorpy.controllers.quadrotor_control import SE3Control
@@ -54,7 +54,7 @@ from stable_baselines3 import PPO                                   # We'll use 
 from stable_baselines3.ppo.policies import MlpPolicy                # The policy will be represented by an MLP
 
 # Choose the weights for our reward function. Here we are creating a lambda function over hover_reward.
-reward_function = lambda obs, act: hover_reward(obs, act, weights={'x': 1, 'v': 0.1, 'w': 0, 'u': 1e-5})
+reward_function = lambda obs, act, done: hover_reward_ppo(obs, act, done, weights={'x': 1, 'v': 0.1, 'w': 0, 'u': 1e-5})
 
 # Set up the figure for plotting all the agents.
 fig = plt.figure()
