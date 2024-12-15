@@ -1,4 +1,4 @@
-### End to end UAV controller using deep reinforcement learning algorithm
+### End to end UAV hover controller using deep reinforcement learning algorithm in wind disturbed environment
 
 ### Structure
 All the source code is in folder "hover_rl/end2end"
@@ -8,10 +8,15 @@ We use [RotorPy](https://github.com/spencerfolk/rotorpy), a Python-based multiro
 
 #### To run the training:
 ```
-python3 train.py
+python3 hover_train.py
 ```
 
 #### To run the testing:
 ```
-python3 test.py
+python3 hover_test.py
 ```
+
+
+#### future work:
+1. train an end to end controller for path tracking instead of only hovering: on-going, code is in folder "hover_rl/pathtrck"
+2. train an controller combine with RL residual learning and geometry(SE3) controller: on-going, code is in folder "hover_rl/resrl"
