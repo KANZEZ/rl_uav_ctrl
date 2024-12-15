@@ -18,5 +18,5 @@ python3 hover_test.py
 
 
 #### future work:
-1. train an end to end controller for path tracking instead of only hovering: on-going, code is in folder "hover_rl/pathtrck"
-2. train an controller combine with RL residual learning and geometry(SE3) controller: on-going, code is in folder "hover_rl/resrl"
+1. train an end to end controller for path tracking instead of only hovering: on-going, code is in folder "hover_rl/path_trk"
+2. train an controller combine with RL residual learning and nomial geometry(SE3) controller: on-going, code is in folder "hover_rl/res_rl"
