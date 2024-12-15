@@ -131,26 +131,25 @@ dmypy.json
 sandbox.py
 waypoint_traj.py
 
-forces_pro_client/
+/forces_pro_client/
 
-examples/FORCESNLPsolver/
-examples/*.force
+/examples/FORCESNLPsolver/
+/examples/*.force
 
-c_generated_code/
 
-acados_solver
+/acados_solver
 
-media*
+/media*
 
-.idea
+/.idea
 
-rotorpy
+/rotorpy
 
-paper
+/paper
 
-forces_pro_client
+/forces_pro_client
 
-examples
+/examples
 
-c_generated_code
+/c_generated_code
 
