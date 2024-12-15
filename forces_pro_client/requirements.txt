@@ -1,4 +1,0 @@
-numpy >=1.18.3
-scipy >=1.4.1
-requests >=2.5
-casadi >=3.5.1, !=3.5.2, !=3.5.3, !=3.5.4, <=3.5.5 # optional, only required for high-level interface
