@@ -138,6 +138,19 @@ examples/*.force
 
 c_generated_code/
 
-acados_solver/
+acados_solver
 
-media1/
+media*
+
+.idea
+
+rotorpy
+
+paper
+
+forces_pro_client
+
+examples
+
+c_generated_code
+
